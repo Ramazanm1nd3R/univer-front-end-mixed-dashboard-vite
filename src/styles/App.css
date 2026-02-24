@@ -1,0 +1,408 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.app {
+  min-height: 100vh;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* ============================================
+   СВЕТЛАЯ ТЕМА
+   ============================================ */
+.light-theme {
+  background: #ffffff;
+  color: #1a1a1a;
+}
+
+.light-theme .main-content {
+  background: #f8f9fa;
+}
+
+/* ============================================
+   ТЕМНАЯ ТЕМА
+   ============================================ */
+.dark-theme {
+  background: #0d1117;
+  color: #e6edf3;
+}
+
+.dark-theme .main-content {
+  background: #0d1117;
+}
+
+/* ============================================
+   HEADER
+   ============================================ */
+.app-header {
+  background: inherit;
+  padding: 1rem 2rem;
+  border-bottom: 1px solid;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  backdrop-filter: blur(8px);
+}
+
+.light-theme .app-header {
+  background: rgba(255, 255, 255, 0.8);
+  border-bottom-color: #e5e7eb;
+}
+
+.dark-theme .app-header {
+  background: rgba(13, 17, 23, 0.8);
+  border-bottom-color: #30363d;
+}
+
+.header-content {
+  max-width: 1400px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logo {
+  font-size: 1.5rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.light-theme .logo {
+  color: #1a1a1a;
+}
+
+.dark-theme .logo {
+  color: #e6edf3;
+}
+
+.nav-menu {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.nav-menu button {
+  background: transparent;
+  border: none;
+  padding: 0.625rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.15s ease;
+}
+
+.light-theme .nav-menu button {
+  color: #57606a;
+}
+
+.light-theme .nav-menu button:hover {
+  background: #f3f4f6;
+  color: #1a1a1a;
+}
+
+.light-theme .nav-menu button.active {
+  background: #1a1a1a;
+  color: white;
+}
+
+.dark-theme .nav-menu button {
+  color: #8b949e;
+}
+
+.dark-theme .nav-menu button:hover {
+  background: #21262d;
+  color: #e6edf3;
+}
+
+.dark-theme .nav-menu button.active {
+  background: #e6edf3;
+  color: #0d1117;
+}
+
+/* ============================================
+   MAIN CONTENT
+   ============================================ */
+.main-content {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 2rem;
+  min-height: calc(100vh - 140px);
+}
+
+/* ============================================
+   FOOTER
+   ============================================ */
+.app-footer {
+  text-align: center;
+  padding: 2rem;
+  font-size: 0.875rem;
+  border-top: 1px solid;
+}
+
+.light-theme .app-footer {
+  color: #57606a;
+  border-top-color: #e5e7eb;
+}
+
+.dark-theme .app-footer {
+  color: #8b949e;
+  border-top-color: #30363d;
+}
+
+/* ============================================
+   COMPONENTS VIEW
+   ============================================ */
+.components-view {
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.components-view h2 {
+  margin-bottom: 0.5rem;
+  font-size: 1.875rem;
+  font-weight: 600;
+}
+
+.light-theme .components-view h2 {
+  color: #1a1a1a;
+}
+
+.dark-theme .components-view h2 {
+  color: #e6edf3;
+}
+
+.view-description {
+  margin-bottom: 2rem;
+  font-size: 0.875rem;
+}
+
+.light-theme .view-description {
+  color: #57606a;
+}
+
+.dark-theme .view-description {
+  color: #8b949e;
+}
+
+.components-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+  gap: 1.5rem;
+}
+
+.components-grid-single {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+/* ============================================
+   COMPONENT CARDS (общие стили для всех компонентов)
+   ============================================ */
+.components-grid > div,
+.components-grid-single > div {
+  border-radius: 8px;
+  border: 1px solid;
+  padding: 1.5rem;
+  transition: all 0.15s ease;
+}
+
+.light-theme .components-grid > div,
+.light-theme .components-grid-single > div {
+  background: white;
+  border-color: #e5e7eb;
+}
+
+.light-theme .components-grid > div:hover,
+.light-theme .components-grid-single > div:hover {
+  border-color: #d1d5db;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.dark-theme .components-grid > div,
+.dark-theme .components-grid-single > div {
+  background: #161b22;
+  border-color: #30363d;
+}
+
+.dark-theme .components-grid > div:hover,
+.dark-theme .components-grid-single > div:hover {
+  border-color: #484f58;
+}
+
+/* Заголовки компонентов */
+.components-grid > div h3,
+.components-grid-single > div h3 {
+  margin-bottom: 1rem;
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+.light-theme .components-grid > div h3,
+.light-theme .components-grid-single > div h3 {
+  color: #1a1a1a;
+}
+
+.dark-theme .components-grid > div h3,
+.dark-theme .components-grid-single > div h3 {
+  color: #e6edf3;
+}
+
+/* Текст внутри компонентов */
+.components-grid > div p,
+.components-grid-single > div p,
+.components-grid > div span,
+.components-grid-single > div span,
+.components-grid > div label,
+.components-grid-single > div label {
+  transition: color 0.2s ease;
+}
+
+.light-theme .components-grid > div p,
+.light-theme .components-grid-single > div p {
+  color: #57606a;
+}
+
+.dark-theme .components-grid > div p,
+.dark-theme .components-grid-single > div p {
+  color: #8b949e;
+}
+
+/* Кнопки внутри компонентов */
+.components-grid button:not(.nav-menu button),
+.components-grid-single button:not(.nav-menu button) {
+  transition: all 0.15s ease;
+}
+
+/* Инпуты внутри компонентов */
+.components-grid input,
+.components-grid textarea,
+.components-grid select,
+.components-grid-single input,
+.components-grid-single textarea,
+.components-grid-single select {
+  transition: all 0.15s ease;
+  border: 1px solid;
+}
+
+.light-theme .components-grid input,
+.light-theme .components-grid textarea,
+.light-theme .components-grid select,
+.light-theme .components-grid-single input,
+.light-theme .components-grid-single textarea,
+.light-theme .components-grid-single select {
+  background: white;
+  border-color: #d1d5db;
+  color: #1a1a1a;
+}
+
+.light-theme .components-grid input:focus,
+.light-theme .components-grid textarea:focus,
+.light-theme .components-grid select:focus,
+.light-theme .components-grid-single input:focus,
+.light-theme .components-grid-single textarea:focus,
+.light-theme .components-grid-single select:focus {
+  outline: none;
+  border-color: #1a1a1a;
+}
+
+.dark-theme .components-grid input,
+.dark-theme .components-grid textarea,
+.dark-theme .components-grid select,
+.dark-theme .components-grid-single input,
+.dark-theme .components-grid-single textarea,
+.dark-theme .components-grid-single select {
+  background: #0d1117;
+  border-color: #30363d;
+  color: #e6edf3;
+}
+
+.dark-theme .components-grid input:focus,
+.dark-theme .components-grid textarea:focus,
+.dark-theme .components-grid select:focus,
+.dark-theme .components-grid-single input:focus,
+.dark-theme .components-grid-single textarea:focus,
+.dark-theme .components-grid-single select:focus {
+  outline: none;
+  border-color: #58a6ff;
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+@media (max-width: 768px) {
+  .header-content {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .nav-menu {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .main-content {
+    padding: 1.5rem;
+  }
+
+  .components-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .nav-menu {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ============================================
+   SCROLLBAR
+   ============================================ */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.light-theme ::-webkit-scrollbar-track {
+  background: #f3f4f6;
+}
+
+.light-theme ::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 5px;
+}
+
+.light-theme ::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+.dark-theme ::-webkit-scrollbar-track {
+  background: #161b22;
+}
+
+.dark-theme ::-webkit-scrollbar-thumb {
+  background: #30363d;
+  border-radius: 5px;
+}
+
+.dark-theme ::-webkit-scrollbar-thumb:hover {
+  background: #484f58;
+}

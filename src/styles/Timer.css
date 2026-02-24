@@ -1,0 +1,80 @@
+.timer-container {
+  background: white;
+  padding: 2rem;
+  border-radius: 15px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  transition: transform 0.3s ease;
+}
+
+.timer-container:hover {
+  transform: translateY(-5px);
+}
+
+.timer-container h3 {
+  color: #667eea;
+  margin-bottom: 1.5rem;
+  font-size: 1.3rem;
+}
+
+.timer-display {
+  font-size: 4rem;
+  font-weight: bold;
+  color: #2d3748;
+  margin: 2rem 0;
+  font-family: 'Courier New', monospace;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.timer-display.finished {
+  color: #fc8181;
+  animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+.timer-controls {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+
+.timer-controls button {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 0.75rem 2rem;
+  border-radius: 10px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.timer-controls button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+}
+
+.timer-controls button:disabled {
+  background: #cbd5e0;
+  cursor: not-allowed;
+}
+
+.timer-message {
+  color: #fc8181;
+  font-weight: 600;
+  font-size: 1.1rem;
+  animation: fadeIn 0.5s ease;
+}
+
+.dark-theme .timer-container {
+  background: #2d3748;
+}
+
+.dark-theme .timer-display {
+  color: #90cdf4;
+}

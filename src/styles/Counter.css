@@ -1,0 +1,67 @@
+.counter-container {
+  text-align: center;
+}
+
+.counter-display {
+  font-size: 3rem;
+  font-weight: 700;
+  margin: 2rem 0;
+}
+
+.light-theme .counter-display {
+  color: #1a1a1a;
+}
+
+.dark-theme .counter-display {
+  color: #e6edf3;
+}
+
+.counter-buttons {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+.counter-buttons button {
+  padding: 0.625rem 1.5rem;
+  border-radius: 6px;
+  font-size: 1.25rem;
+  cursor: pointer;
+  font-weight: 600;
+  border: 1px solid;
+  transition: all 0.15s ease;
+}
+
+.light-theme .counter-buttons button {
+  background: #1a1a1a;
+  color: white;
+  border-color: #1a1a1a;
+}
+
+.light-theme .counter-buttons button:hover:not(:disabled) {
+  background: #2d2d2d;
+}
+
+.light-theme .counter-buttons button:disabled {
+  background: #e5e7eb;
+  color: #9ca3af;
+  border-color: #e5e7eb;
+  cursor: not-allowed;
+}
+
+.dark-theme .counter-buttons button {
+  background: #e6edf3;
+  color: #0d1117;
+  border-color: #e6edf3;
+}
+
+.dark-theme .counter-buttons button:hover:not(:disabled) {
+  background: #f0f6fc;
+}
+
+.dark-theme .counter-buttons button:disabled {
+  background: #21262d;
+  color: #484f58;
+  border-color: #30363d;
+  cursor: not-allowed;
+}

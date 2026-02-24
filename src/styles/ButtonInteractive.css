@@ -1,0 +1,67 @@
+.button-interactive-container {
+  background: white;
+  padding: 2rem;
+  border-radius: 15px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  transition: transform 0.3s ease;
+}
+
+.button-interactive-container:hover {
+  transform: translateY(-5px);
+}
+
+.button-interactive-container h3 {
+  color: #667eea;
+  margin-bottom: 2rem;
+  font-size: 1.3rem;
+}
+
+.interactive-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 1.5rem 3rem;
+  border-radius: 15px;
+  font-size: 1.2rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+}
+
+.interactive-btn.hovered {
+  transform: translateY(-5px) scale(1.05);
+  box-shadow: 0 10px 25px rgba(102, 126, 234, 0.5);
+  background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+}
+
+.interactive-btn.active {
+  transform: translateY(0) scale(0.95);
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
+}
+
+.button-stats {
+  margin-top: 2rem;
+  padding: 1rem;
+  background: #f7fafc;
+  border-radius: 10px;
+}
+
+.button-stats p {
+  margin: 0.5rem 0;
+  color: #4a5568;
+  font-size: 1rem;
+}
+
+.dark-theme .button-interactive-container {
+  background: #2d3748;
+}
+
+.dark-theme .button-stats {
+  background: #1a202c;
+}
+
+.dark-theme .button-stats p {
+  color: #e2e8f0;
+}
