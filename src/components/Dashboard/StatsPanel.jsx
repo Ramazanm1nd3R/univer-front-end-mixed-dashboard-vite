@@ -1,8 +1,8 @@
-import React from 'react';
-import { useDashboard } from './Dashboard';
+import React, { memo } from 'react';
+import { useDashboardData } from '../../context/DashboardContext';
 
 function StatsPanel() {
-  const { items } = useDashboard();
+  const { items } = useDashboardData();
 
   const active = items.filter(i => i.status === 'active').length;
   const completed = items.filter(i => i.status === 'completed').length;
@@ -18,4 +18,4 @@ function StatsPanel() {
   );
 }
 
-export default StatsPanel;
+export default memo(StatsPanel);

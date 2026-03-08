@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
+import React, { memo, useCallback, useMemo, useState } from 'react';
 import '../../styles/Dashboard.css';
+
+const MAX_TITLE = 100;
 
 function AddItemModal({ onClose, onAdd }) {
   const [formData, setFormData] = useState({
@@ -8,73 +10,122 @@ function AddItemModal({ onClose, onAdd }) {
     priority: 'medium',
     status: 'active',
     dueDate: '',
-    dueTime: ''
+    dueTime: '',
   });
   const [errors, setErrors] = useState({});
-  const [submitted, setSubmitted] = useState(false);
+  const [touched, setTouched] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const MAX_TITLE = 100;
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-    if (submitted && errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: '' }));
+  const validateField = useCallback((name, value, nextFormData) => {
+    if (name === 'title') {
+      const title = value.trim();
+      if (!title) return 'Введите название задачи';
+      if (title.length > MAX_TITLE) return `Максимум ${MAX_TITLE} символов`;
+      return '';
     }
-  };
 
-  const setPriority = (p) => setFormData(prev => ({ ...prev, priority: p }));
+    if ((name === 'dueDate' || name === 'dueTime') && nextFormData.dueTime && !nextFormData.dueDate) {
+      return 'Укажите дату, если задано время';
+    }
 
-  const validate = () => {
-    const newErrors = {};
-    if (!formData.title.trim()) newErrors.title = 'Введите название задачи';
-    else if (formData.title.trim().length > MAX_TITLE) newErrors.title = `Максимум ${MAX_TITLE} символов`;
-    return newErrors;
-  };
+    return '';
+  }, []);
 
-  const handleSubmit = (e) => {
+  const validateAll = useCallback((data) => {
+    const nextErrors = {};
+    const titleError = validateField('title', data.title, data);
+    if (titleError) nextErrors.title = titleError;
+
+    const dueDateError = validateField('dueDate', data.dueDate, data);
+    if (dueDateError) nextErrors.dueDate = dueDateError;
+
+    return nextErrors;
+  }, [validateField]);
+
+  const handleChange = useCallback((e) => {
+    const { name, value, type, checked } = e.target;
+    const nextValue = type === 'checkbox' ? checked : value;
+
+    setFormData((prev) => {
+      const nextFormData = { ...prev, [name]: nextValue };
+
+      if (touched[name]) {
+        setErrors((prevErrors) => ({
+          ...prevErrors,
+          [name]: validateField(name, nextValue, nextFormData),
+        }));
+      }
+
+      if (name === 'dueDate' || name === 'dueTime') {
+        const dueDateError = validateField('dueDate', nextFormData.dueDate, nextFormData);
+        setErrors((prevErrors) => ({ ...prevErrors, dueDate: dueDateError }));
+      }
+
+      return nextFormData;
+    });
+  }, [touched, validateField]);
+
+  const handleBlur = useCallback((e) => {
+    const { name, value } = e.target;
+    setTouched((prev) => ({ ...prev, [name]: true }));
+    setErrors((prev) => ({
+      ...prev,
+      [name]: validateField(name, value, formData),
+    }));
+  }, [formData, validateField]);
+
+  const setPriority = useCallback((priority) => {
+    setFormData((prev) => ({ ...prev, priority }));
+  }, []);
+
+  const handleSubmit = useCallback(async (e) => {
     e.preventDefault();
-    setSubmitted(true);
-    const newErrors = validate();
-    if (Object.keys(newErrors).length > 0) { setErrors(newErrors); return; }
-    onAdd(formData);
-    onClose();
-  };
 
-  const priorityConfig = {
-    low:    { label: '🟢 Низкий',   color: '#22c55e' },
-    medium: { label: '🟡 Средний',  color: '#f59e0b' },
-    high:   { label: '🔴 Высокий',  color: '#ef4444' },
-  };
+    const nextErrors = validateAll(formData);
+    setTouched({ title: true, dueDate: true, dueTime: true });
+    setErrors(nextErrors);
 
-  const categoryOptions = [
-    { value: 'work',     label: '💼 Работа' },
+    if (Object.keys(nextErrors).length > 0) return;
+
+    setIsSubmitting(true);
+    const success = await onAdd(formData);
+    setIsSubmitting(false);
+
+    if (success) {
+      onClose();
+    }
+  }, [formData, onAdd, onClose, validateAll]);
+
+  const priorityConfig = useMemo(() => ({
+    low: { label: '🟢 Низкий' },
+    medium: { label: '🟡 Средний' },
+    high: { label: '🔴 Высокий' },
+  }), []);
+
+  const categoryOptions = useMemo(() => ([
+    { value: 'work', label: '💼 Работа' },
     { value: 'personal', label: '👤 Личное' },
-    { value: 'health',   label: '💪 Здоровье' },
-    { value: 'other',    label: '📌 Другое' },
-  ];
+    { value: 'health', label: '💪 Здоровье' },
+    { value: 'other', label: '📌 Другое' },
+  ]), []);
 
-  const categoryLabel = categoryOptions.find(c => c.value === formData.category)?.label || '📌 Другое';
+  const categoryLabel = categoryOptions.find((c) => c.value === formData.category)?.label || '📌 Другое';
   const titleLen = formData.title.length;
   const titleNear = titleLen > MAX_TITLE * 0.8;
 
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content modal-modern" onClick={(e) => e.stopPropagation()}>
-
-        {/* ── HEADER ── */}
         <div className="modal-header-modern">
           <div className="modal-header-text">
             <h2>✨ Новая задача</h2>
             <p>Заполните детали для создания задачи</p>
           </div>
-          <button className="modal-close-btn" onClick={onClose} title="Закрыть">✕</button>
+          <button className="modal-close-btn" onClick={onClose} title="Закрыть" disabled={isSubmitting}>✕</button>
         </div>
 
         <div className="modal-body">
           <form onSubmit={handleSubmit} className="modal-form">
-
-            {/* Название */}
             <div className="form-group">
               <label htmlFor="add-title" className="form-label">
                 Название задачи <span className="required-mark">*</span>
@@ -85,6 +136,7 @@ function AddItemModal({ onClose, onAdd }) {
                 name="title"
                 value={formData.title}
                 onChange={handleChange}
+                onBlur={handleBlur}
                 placeholder="Что нужно сделать?"
                 autoFocus
                 className={`form-input ${errors.title ? 'input-error' : ''}`}
@@ -93,15 +145,13 @@ function AddItemModal({ onClose, onAdd }) {
               <div className="form-meta">
                 {errors.title
                   ? <span className="form-error">⚠ {errors.title}</span>
-                  : <span className="form-hint">Кратко опишите задачу</span>
-                }
+                  : <span className="form-hint">Кратко опишите задачу</span>}
                 <span className={`char-counter ${titleNear ? 'near-limit' : ''}`}>
                   {titleLen}/{MAX_TITLE}
                 </span>
               </div>
             </div>
 
-            {/* Приоритет */}
             <div className="form-group">
               <label className="form-label">Приоритет</label>
               <div className="priority-selector">
@@ -118,38 +168,24 @@ function AddItemModal({ onClose, onAdd }) {
               </div>
             </div>
 
-            {/* Категория + Статус */}
             <div className="form-row">
               <div className="form-group">
                 <label htmlFor="add-category" className="form-label">Категория</label>
-                <select
-                  id="add-category"
-                  name="category"
-                  value={formData.category}
-                  onChange={handleChange}
-                  className="form-select"
-                >
-                  {categoryOptions.map(o => (
+                <select id="add-category" name="category" value={formData.category} onChange={handleChange} className="form-select">
+                  {categoryOptions.map((o) => (
                     <option key={o.value} value={o.value}>{o.label}</option>
                   ))}
                 </select>
               </div>
               <div className="form-group">
                 <label htmlFor="add-status" className="form-label">Статус</label>
-                <select
-                  id="add-status"
-                  name="status"
-                  value={formData.status}
-                  onChange={handleChange}
-                  className="form-select"
-                >
+                <select id="add-status" name="status" value={formData.status} onChange={handleChange} className="form-select">
                   <option value="active">⏳ Активная</option>
                   <option value="completed">✅ Завершённая</option>
                 </select>
               </div>
             </div>
 
-            {/* Дата + Время */}
             <div className="form-row">
               <div className="form-group">
                 <label htmlFor="add-dueDate" className="form-label">📅 Срок — дата</label>
@@ -159,8 +195,10 @@ function AddItemModal({ onClose, onAdd }) {
                   name="dueDate"
                   value={formData.dueDate}
                   onChange={handleChange}
-                  className="form-input"
+                  onBlur={handleBlur}
+                  className={`form-input ${errors.dueDate ? 'input-error' : ''}`}
                 />
+                {errors.dueDate && <span className="form-error">⚠ {errors.dueDate}</span>}
               </div>
               <div className="form-group">
                 <label htmlFor="add-dueTime" className="form-label">⏰ Срок — время</label>
@@ -170,12 +208,12 @@ function AddItemModal({ onClose, onAdd }) {
                   name="dueTime"
                   value={formData.dueTime}
                   onChange={handleChange}
+                  onBlur={handleBlur}
                   className="form-input"
                 />
               </div>
             </div>
 
-            {/* Превью */}
             {formData.title.trim() && (
               <div className="task-preview">
                 <div className="preview-label">👁 Превью задачи</div>
@@ -185,9 +223,7 @@ function AddItemModal({ onClose, onAdd }) {
                       {priorityConfig[formData.priority]?.label}
                     </span>
                     <span className="preview-category-badge">{categoryLabel}</span>
-                    {formData.status === 'completed' && (
-                      <span className="preview-status-badge">✅ Завершена</span>
-                    )}
+                    {formData.status === 'completed' && <span className="preview-status-badge">✅ Завершена</span>}
                   </div>
                   <div className="preview-card-title">{formData.title}</div>
                   {(formData.dueDate || formData.dueTime) && (
@@ -198,21 +234,18 @@ function AddItemModal({ onClose, onAdd }) {
                 </div>
               </div>
             )}
-
           </form>
         </div>
 
-        {/* ── FOOTER ── */}
         <div className="modal-footer">
-          <button type="button" className="btn-secondary" onClick={onClose}>Отмена</button>
-          <button type="submit" className="btn-primary" onClick={handleSubmit}>
-            ✨ Создать задачу
+          <button type="button" className="btn-secondary" onClick={onClose} disabled={isSubmitting}>Отмена</button>
+          <button type="submit" className="btn-primary" onClick={handleSubmit} disabled={isSubmitting}>
+            {isSubmitting ? 'Сохранение...' : '✨ Создать задачу'}
           </button>
         </div>
-
       </div>
     </div>
   );
 }
 
-export default AddItemModal;
+export default memo(AddItemModal);
