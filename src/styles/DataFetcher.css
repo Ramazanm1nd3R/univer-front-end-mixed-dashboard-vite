@@ -14,7 +14,7 @@
 }
 
 .data-fetcher-container h3 {
-  color: #667eea;
+  color: #3b82f6;
   margin-bottom: 1.5rem;
   font-size: 1.3rem;
 }
@@ -31,7 +31,7 @@
   width: 50px;
   height: 50px;
   border: 4px solid #e2e8f0;
-  border-top: 4px solid #667eea;
+  border-top: 4px solid #3b82f6;
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
@@ -43,7 +43,7 @@
 
 .loading-spinner p {
   margin-top: 1rem;
-  color: #667eea;
+  color: #3b82f6;
   font-weight: 600;
 }
 

@@ -36,7 +36,7 @@
 .page-header h1 {
   font-size: 2.5rem;
   font-weight: 900;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -72,13 +72,13 @@
 
 .time-range-select:hover {
   border-color: var(--accent-primary);
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
 .time-range-select:focus {
   outline: none;
   border-color: var(--accent-primary);
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
 }
 
 /* ============================================
@@ -98,8 +98,8 @@
   width: 80px;
   height: 80px;
   border: 6px solid var(--bg-tertiary);
-  border-top-color: #667eea;
-  border-right-color: #764ba2;
+  border-top-color: #3b82f6;
+  border-right-color: #1d4ed8;
   border-radius: 50%;
   animation: spin 1s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
 }
@@ -144,14 +144,14 @@
 }
 
 .view-tabs button:hover {
-  background: rgba(102, 126, 234, 0.1);
+  background: rgba(59, 130, 246, 0.1);
   color: var(--text-primary);
 }
 
 .view-tabs button.active {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
   color: white;
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
 }
 
 /* ============================================
@@ -183,7 +183,7 @@
   left: 0;
   right: 0;
   height: 5px;
-  background: linear-gradient(90deg, #667eea, #764ba2);
+  background: linear-gradient(90deg, #3b82f6, #1d4ed8);
   opacity: 0;
   transition: opacity 0.3s ease;
 }
@@ -195,7 +195,7 @@
 .main-stat-card:hover {
   transform: translateY(-8px) scale(1.02);
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
-  border-color: #667eea;
+  border-color: #3b82f6;
 }
 
 .main-stat-card.primary {
@@ -283,10 +283,10 @@
 
 .main-stat-progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #667eea, #764ba2);
+  background: linear-gradient(90deg, #3b82f6, #1d4ed8);
   border-radius: 4px;
   transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 0 12px rgba(102, 126, 234, 0.6);
+  box-shadow: 0 0 12px rgba(59, 130, 246, 0.6);
 }
 
 .main-stat-progress-fill.success {
@@ -454,7 +454,7 @@
 
 .section-card:hover {
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
-  border-color: #667eea;
+  border-color: #3b82f6;
 }
 
 .section-card.wide {
@@ -488,12 +488,12 @@
   font-size: 0.8125rem;
   font-weight: 800;
   padding: 0.5rem 1rem;
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
   color: white;
   border-radius: 8px;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 }
 
 /* ============================================
@@ -529,8 +529,8 @@
 
 .metric-card:hover {
   transform: translateY(-12px) rotate(1deg);
-  box-shadow: 0 20px 40px rgba(102, 126, 234, 0.25);
-  border-color: #667eea;
+  box-shadow: 0 20px 40px rgba(59, 130, 246, 0.25);
+  border-color: #3b82f6;
 }
 
 .metric-header {
@@ -552,10 +552,10 @@
   font-size: 0.8125rem;
   font-weight: 900;
   padding: 0.375rem 0.875rem;
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
   color: white;
   border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
 }
 
 .metric-description {
@@ -573,7 +573,7 @@
 
 .progress-ring svg {
   transform: rotate(-90deg);
-  filter: drop-shadow(0 4px 12px rgba(102, 126, 234, 0.3));
+  filter: drop-shadow(0 4px 12px rgba(59, 130, 246, 0.3));
 }
 
 .progress-ring-circle-bg {
@@ -601,7 +601,7 @@
 .progress-ring-value {
   font-size: 2rem;
   font-weight: 900;
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -620,7 +620,7 @@
 .heatmap-container {
   overflow-x: auto;
   padding: 1.5rem 0;
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.02) 0%, transparent 100%);
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.02) 0%, transparent 100%);
   border-radius: 12px;
 }
 
@@ -671,7 +671,7 @@
   width: 28px;
   height: 28px;
   border-radius: 6px;
-  border: 2px solid rgba(102, 126, 234, 0.2);
+  border: 2px solid rgba(59, 130, 246, 0.2);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -684,8 +684,8 @@
 .heatmap-cell:hover {
   transform: scale(1.4);
   z-index: 100;
-  box-shadow: 0 12px 24px rgba(102, 126, 234, 0.4);
-  border-color: #667eea;
+  box-shadow: 0 12px 24px rgba(59, 130, 246, 0.4);
+  border-color: #3b82f6;
 }
 
 .heatmap-value {
@@ -706,7 +706,7 @@
   height: 250px;
   gap: 6px;
   padding: 1.5rem 0;
-  background: linear-gradient(to top, rgba(102, 126, 234, 0.02) 0%, transparent 100%);
+  background: linear-gradient(to top, rgba(59, 130, 246, 0.02) 0%, transparent 100%);
   border-radius: 12px;
   margin-bottom: 1rem;
 }
@@ -831,7 +831,7 @@
 .monthly-bar-fill {
   width: 100%;
   min-height: 8px;
-  background: linear-gradient(to top, #667eea, #764ba2);
+  background: linear-gradient(to top, #3b82f6, #1d4ed8);
   border-radius: 8px 8px 0 0;
   display: flex;
   align-items: flex-start;
@@ -839,12 +839,12 @@
   padding-top: 0.5rem;
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
-  box-shadow: 0 -4px 12px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 -4px 12px rgba(59, 130, 246, 0.3);
 }
 
 .monthly-bar-fill:hover {
   transform: scaleY(1.1);
-  box-shadow: 0 -8px 24px rgba(102, 126, 234, 0.5);
+  box-shadow: 0 -8px 24px rgba(59, 130, 246, 0.5);
 }
 
 .monthly-bar-value {
@@ -993,12 +993,12 @@
 
 .category-bar-fill {
   height: 100%;
-  background: linear-gradient(90deg, #667eea, #764ba2);
+  background: linear-gradient(90deg, #3b82f6, #1d4ed8);
   display: flex;
   align-items: center;
   padding: 0 1rem;
   transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 0 12px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 0 12px rgba(59, 130, 246, 0.4);
 }
 
 .category-count {
@@ -1051,7 +1051,7 @@
 .day-bar-fill {
   width: 100%;
   min-height: 8px;
-  background: linear-gradient(to top, #667eea, #764ba2);
+  background: linear-gradient(to top, #3b82f6, #1d4ed8);
   border-radius: 8px 8px 0 0;
   display: flex;
   align-items: flex-start;
@@ -1059,12 +1059,12 @@
   padding-top: 0.5rem;
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
-  box-shadow: 0 -4px 12px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 -4px 12px rgba(59, 130, 246, 0.3);
 }
 
 .day-bar-fill:hover {
   transform: scaleY(1.15) scaleX(1.05);
-  box-shadow: 0 -8px 24px rgba(102, 126, 234, 0.6);
+  box-shadow: 0 -8px 24px rgba(59, 130, 246, 0.6);
 }
 
 .day-bar-value {
@@ -1116,9 +1116,9 @@
 
 .hour-bar-fill {
   height: 100%;
-  background: linear-gradient(90deg, #667eea, #764ba2);
+  background: linear-gradient(90deg, #3b82f6, #1d4ed8);
   transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 0 12px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 0 12px rgba(59, 130, 246, 0.4);
 }
 
 .hour-count {
@@ -1155,8 +1155,8 @@
 
 .productivity-stat:hover {
   transform: translateY(-8px);
-  box-shadow: 0 16px 32px rgba(102, 126, 234, 0.2);
-  border-color: #667eea;
+  box-shadow: 0 16px 32px rgba(59, 130, 246, 0.2);
+  border-color: #3b82f6;
 }
 
 .productivity-icon {
@@ -1171,7 +1171,7 @@
 .productivity-value {
   font-size: 2rem;
   font-weight: 900;
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -1303,7 +1303,7 @@
 }
 
 .activity-table tbody tr:hover {
-  background: linear-gradient(90deg, rgba(102, 126, 234, 0.05) 0%, transparent 100%);
+  background: linear-gradient(90deg, rgba(59, 130, 246, 0.05) 0%, transparent 100%);
   transform: translateX(4px);
 }
 
@@ -1316,12 +1316,12 @@
 .category-tag {
   display: inline-block;
   padding: 0.375rem 0.875rem;
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
   color: white;
   border-radius: 6px;
   font-size: 0.75rem;
   font-weight: 700;
-  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
 }
 
 .priority-tag {
@@ -1487,7 +1487,7 @@
   left: 0;
   right: 0;
   height: 5px;
-  background: linear-gradient(90deg, #667eea, #764ba2);
+  background: linear-gradient(90deg, #3b82f6, #1d4ed8);
   opacity: 0;
   transition: opacity 0.3s ease;
 }
@@ -1498,8 +1498,8 @@
 
 .period-card:hover {
   transform: translateY(-12px) scale(1.03);
-  box-shadow: 0 24px 48px rgba(102, 126, 234, 0.25);
-  border-color: #667eea;
+  box-shadow: 0 24px 48px rgba(59, 130, 246, 0.25);
+  border-color: #3b82f6;
 }
 
 .period-icon {
@@ -1511,7 +1511,7 @@
 .period-value {
   font-size: 3.5rem;
   font-weight: 900;
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -1558,7 +1558,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: radial-gradient(circle at top right, rgba(102, 126, 234, 0.1), transparent);
+  background: radial-gradient(circle at top right, rgba(59, 130, 246, 0.1), transparent);
   opacity: 0;
   transition: opacity 0.3s ease;
   pointer-events: none;
@@ -1570,13 +1570,13 @@
 
 .prediction-card:hover {
   transform: translateY(-10px);
-  box-shadow: 0 20px 48px rgba(102, 126, 234, 0.3);
-  border-color: #667eea;
+  box-shadow: 0 20px 48px rgba(59, 130, 246, 0.3);
+  border-color: #3b82f6;
 }
 
 .prediction-card.highlight {
-  border-color: #667eea;
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.08) 0%, var(--bg-secondary) 100%);
+  border-color: #3b82f6;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.08) 0%, var(--bg-secondary) 100%);
 }
 
 .prediction-card.success {
@@ -1612,7 +1612,7 @@
 .prediction-value {
   font-size: 2.5rem;
   font-weight: 900;
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -1672,16 +1672,16 @@
   align-items: center;
   gap: 0.75rem;
   padding: 1rem 1.5rem;
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
   border-radius: 12px;
-  box-shadow: 0 8px 24px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 8px 24px rgba(59, 130, 246, 0.3);
   transition: all 0.3s ease;
   cursor: pointer;
 }
 
 .optimal-hour-badge:hover {
   transform: translateY(-4px) scale(1.05);
-  box-shadow: 0 12px 32px rgba(102, 126, 234, 0.5);
+  box-shadow: 0 12px 32px rgba(59, 130, 246, 0.5);
 }
 
 .optimal-hour-icon {
@@ -1704,7 +1704,7 @@
   padding: 1.25rem;
   background: var(--bg-secondary);
   border-radius: 10px;
-  border-left: 4px solid #667eea;
+  border-left: 4px solid #3b82f6;
 }
 
 /* ============================================
@@ -1731,8 +1731,8 @@
 
 .recommendation-item:hover {
   transform: translateX(8px);
-  box-shadow: 0 12px 32px rgba(102, 126, 234, 0.15);
-  border-color: #667eea;
+  box-shadow: 0 12px 32px rgba(59, 130, 246, 0.15);
+  border-color: #3b82f6;
 }
 
 .recommendation-icon {
@@ -2182,12 +2182,12 @@
 }
 
 .data-page ::-webkit-scrollbar-thumb {
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
   border-radius: 4px;
 }
 
 .data-page ::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(135deg, #764ba2, #667eea);
+  background: linear-gradient(135deg, #1d4ed8, #3b82f6);
 }
 
 /* ============================================
@@ -2204,7 +2204,7 @@
   .section-card:hover,
   .main-stat-card:hover,
   .metric-card:hover {
-    box-shadow: 0 12px 48px rgba(102, 126, 234, 0.4);
+    box-shadow: 0 12px 48px rgba(59, 130, 246, 0.4);
   }
 }
 
@@ -2226,7 +2226,7 @@
 .view-tabs button:focus-visible,
 .time-range-select:focus-visible,
 button:focus-visible {
-  outline: 3px solid #667eea;
+  outline: 3px solid #3b82f6;
   outline-offset: 2px;
 }
 

@@ -14,7 +14,7 @@
 }
 
 .server-error-title {
-  color: #667eea;
+  color: #3b82f6;
   font-size: 2rem;
   margin: 0 0 8px;
 }
@@ -29,7 +29,7 @@
 .server-error-button {
   margin-top: 24px;
   padding: 12px 32px;
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
   color: white;
   border: none;
   border-radius: 8px;
@@ -37,12 +37,12 @@
   cursor: pointer;
   font-weight: 600;
   transition: all 0.2s ease;
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 }
 
 .server-error-button:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4);
 }
 
 .server-error-button:active {

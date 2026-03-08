@@ -325,8 +325,8 @@ function Calculator() {
    COLOR CONVERTER
 ───────────────────────────────────────────── */
 function ColorConverter() {
-  const [hexColor, setHexColor]   = useState('#667eea');
-  const [rgbColor, setRgbColor]   = useState('rgb(102, 126, 234)');
+  const [hexColor, setHexColor]   = useState('#3b82f6');
+  const [rgbColor, setRgbColor]   = useState('rgb(59, 130, 246)');
   const [copied, setCopied]       = useState('');
 
   const hexToRgb = (hex) => {
@@ -363,7 +363,7 @@ function ColorConverter() {
           <div className="color-field-row">
             <input
               type="color"
-              value={hexColor.length === 7 ? hexColor : '#667eea'}
+              value={hexColor.length === 7 ? hexColor : '#3b82f6'}
               onChange={e => handleHexChange(e.target.value)}
               className="color-picker"
             />
@@ -372,7 +372,7 @@ function ColorConverter() {
               value={hexColor}
               onChange={e => handleHexChange(e.target.value)}
               className="color-text-input"
-              placeholder="#667eea"
+              placeholder="#3b82f6"
             />
             <button className={`copy-btn ${copied === 'hex' ? 'copied' : ''}`}
               onClick={() => copy(hexColor, 'hex')}>

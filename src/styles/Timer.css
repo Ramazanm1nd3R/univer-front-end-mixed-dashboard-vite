@@ -12,7 +12,7 @@
 }
 
 .timer-container h3 {
-  color: #667eea;
+  color: #3b82f6;
   margin-bottom: 1.5rem;
   font-size: 1.3rem;
 }
@@ -44,7 +44,7 @@
 }
 
 .timer-controls button {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
   color: white;
   border: none;
   padding: 0.75rem 2rem;
@@ -56,7 +56,7 @@
 
 .timer-controls button:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 5px 15px rgba(59, 130, 246, 0.4);
 }
 
 .timer-controls button:disabled {
