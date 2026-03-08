@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import api from '../../services/api';
+import { generateInsights, generatePredictions } from '../../services/openai';
 import './DataPage.css';
 
 // ─────────────────────────────────────────────
@@ -272,18 +273,38 @@ function DistributionSection({ analytics }) {
 }
 
 // ─── Insights ─────────────────────────────────
-function InsightsSection({ analytics }) {
+function InsightsSection({ analytics, aiInsights, aiLoading }) {
   const { peakProductivityHour, peakProductivityDay, avgCompletionTime, topCategories } = analytics;
   const topCat = topCategories[0];
+  const texts = aiInsights || {
+    productivity: `Больше всего задач создаётся в ${peakProductivityHour}:00. Планируй важное на это время.`,
+    bestDay: `Самый активный день — ${peakProductivityDay}. Именно тогда ты наиболее продуктивен.`,
+    completionTime: `Среднее время закрытия задачи: ${avgCompletionTime}.${avgCompletionTime === 'N/A' ? ' Заверши задачи чтобы увидеть метрику.' : ' Отличный темп!'}`,
+    topCategory: topCat ? `«${topCat.name}» занимает ${topCat.percentage}% задач (${topCat.count} шт).` : 'Добавь задачи с категориями.',
+  };
+
   const cards = [
-    { type:'success', icon:'⏰', title:'Пик продуктивности',        text:`Больше всего задач создаётся в ${peakProductivityHour}:00. Планируй важное на это время.` },
-    { type:'info',    icon:'📅', title:'Лучший день',                text:`Самый активный день — ${peakProductivityDay}. Именно тогда ты наиболее продуктивен.` },
-    { type:'warning', icon:'⏱️', title:'Среднее время выполнения',  text:`Среднее время закрытия задачи: ${avgCompletionTime}.${avgCompletionTime === 'N/A' ? ' Заверши задачи чтобы увидеть метрику.' : ' Отличный темп!'}` },
-    { type:'error',   icon:'🏆', title:'Топ-категория',             text: topCat ? `«${topCat.name}» занимает ${topCat.percentage}% задач (${topCat.count} шт).` : 'Добавь задачи с категориями.' },
+    { type:'success', icon:'⏰', title:'Пик продуктивности',        text:texts.productivity },
+    { type:'info',    icon:'📅', title:'Лучший день',               text:texts.bestDay },
+    { type:'warning', icon:'⏱️', title:'Среднее время выполнения', text:texts.completionTime },
+    { type:'error',   icon:'🏆', title:'Топ-категория',            text:texts.topCategory },
   ];
   return (
     <div className="insights-section">
-      <h3>💡 AI Insights</h3>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
+        <h3 style={{ margin: 0 }}>💡 AI Insights</h3>
+        {aiLoading && (
+          <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <div className="loading-spinner" style={{ width: 16, height: 16, borderWidth: 2 }} />
+            Генерация инсайтов...
+          </div>
+        )}
+        {aiInsights && (
+          <span style={{ fontSize: '0.75rem', background: 'linear-gradient(135deg,#667eea,#764ba2)', color: '#fff', padding: '0.25rem 0.75rem', borderRadius: 12, fontWeight: 700 }}>
+            ✨ AI
+          </span>
+        )}
+      </div>
       <div className="insights-grid">
         {cards.map(c => (
           <div key={c.title} className={`insight-card insight-${c.type}`}>
@@ -300,7 +321,7 @@ function InsightsSection({ analytics }) {
 }
 
 // ─── Predictions ──────────────────────────────
-function PredictionsSection({ analytics }) {
+function PredictionsSection({ analytics, aiPredictions, aiLoading }) {
   const { completionRate, totalTasks, activeTasks, peakProductivityHour } = analytics;
   const burnoutRisk  = activeTasks > totalTasks * 0.7 ? 'high' : activeTasks > totalTasks * 0.4 ? 'medium' : 'low';
   const burnoutLabel = { high:'🔴 Высокий', medium:'🟡 Средний', low:'🟢 Низкий' }[burnoutRisk];
@@ -309,15 +330,45 @@ function PredictionsSection({ analytics }) {
   const recommended  = Math.max(1, Math.round(nextWeekEst / 7));
   const optimalHours = [peakProductivityHour, (peakProductivityHour + 2) % 24].sort((a, b) => a - b);
 
+  const texts = aiPredictions || {
+    nextWeekForecast: 'Ожидаемое кол-во задач на следующую неделю на основе текущего темпа.',
+    burnoutRisk: burnoutRisk === 'high'
+      ? 'Слишком много незакрытых задач. Постарайся завершить часть из них.'
+      : burnoutRisk === 'medium'
+      ? 'Умеренная нагрузка. Следи за балансом.'
+      : 'Нагрузка в норме. Отличный ритм!',
+    dailyRecommendation: 'Рекомендуемое количество задач в день для текущего темпа.',
+    completionSpeed: completionRate >= 70
+      ? 'Превосходный результат! Продолжай в том же духе.'
+      : completionRate >= 40
+      ? 'Хороший результат. Есть куда расти.'
+      : 'Попробуй разбивать задачи на маленькие шаги.',
+  };
+
   const cards = [
-    { type:'highlight', icon:'📆', value:nextWeekEst,   label:'Прогноз на неделю',    desc:'Ожидаемое кол-во задач на следующую неделю на основе текущего темпа.' },
-    { type:burnoutCard, icon:'🔥', value:burnoutLabel,  label:'Риск перегрузки',       desc: burnoutRisk === 'high' ? 'Слишком много незакрытых задач. Постарайся завершить часть из них.' : burnoutRisk === 'medium' ? 'Умеренная нагрузка. Следи за балансом.' : 'Нагрузка в норме. Отличный ритм!' },
-    { type:'info',      icon:'✅', value:recommended,   label:'Задач в день (рек.)',   desc:'Рекомендуемое количество задач в день для текущего темпа.' },
-    { type:'success',   icon:'🏅', value:`${completionRate}%`, label:'Скорость выполнения', desc: completionRate >= 70 ? 'Превосходный результат! Продолжай в том же духе.' : completionRate >= 40 ? 'Хороший результат. Есть куда расти.' : 'Попробуй разбивать задачи на маленькие шаги.' },
+    { type:'highlight', icon:'📆', value:nextWeekEst,   label:'Прогноз на неделю',    desc:texts.nextWeekForecast },
+    { type:burnoutCard, icon:'🔥', value:burnoutLabel,  label:'Риск перегрузки',      desc:texts.burnoutRisk },
+    { type:'info',      icon:'✅', value:recommended,   label:'Задач в день (рек.)',  desc:texts.dailyRecommendation },
+    { type:'success',   icon:'🏅', value:`${completionRate}%`, label:'Скорость выполнения', desc:texts.completionSpeed },
   ];
 
   return (
     <>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
+        <h3 style={{ margin: 0 }}>🔮 AI Прогнозы</h3>
+        {aiLoading && (
+          <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <div className="loading-spinner" style={{ width: 16, height: 16, borderWidth: 2 }} />
+            Генерация прогнозов...
+          </div>
+        )}
+        {aiPredictions && (
+          <span style={{ fontSize: '0.75rem', background: 'linear-gradient(135deg,#667eea,#764ba2)', color: '#fff', padding: '0.25rem 0.75rem', borderRadius: 12, fontWeight: 700 }}>
+            ✨ AI
+          </span>
+        )}
+      </div>
+
       <div className="predictions-grid">
         {cards.map(c => (
           <div key={c.label} className={`prediction-card ${c.type}`}>
@@ -409,15 +460,52 @@ function DataPage() {
   const [loading, setLoading]       = useState(true);
   const [error, setError]           = useState(null);
   const [selectedView, setSelectedView] = useState('overview');
+  const [aiInsights, setAiInsights] = useState(null);
+  const [aiPredictions, setAiPredictions] = useState(null);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiUpdatedAt, setAiUpdatedAt] = useState(null);
+  const lastAiCallRef = useRef(0);
 
-  const loadAnalytics = useCallback(async () => {
-    if (!currentUser?.id) { setLoading(false); return; }
+  const loadAiInsights = useCallback(async (analyticsData, force = false) => {
+    if (!analyticsData) return;
+
+    const MIN_AI_INTERVAL = 5 * 60 * 1000;
+    const now = Date.now();
+    if (!force && now - lastAiCallRef.current < MIN_AI_INTERVAL) {
+      return;
+    }
+
+    lastAiCallRef.current = now;
+    setAiLoading(true);
+
+    try {
+      const [insights, predictions] = await Promise.all([
+        generateInsights(analyticsData),
+        generatePredictions(analyticsData),
+      ]);
+      setAiInsights(insights);
+      setAiPredictions(predictions);
+      setAiUpdatedAt(new Date().toISOString());
+    } catch (aiError) {
+      console.error('❌ Ошибка AI генерации:', aiError);
+    } finally {
+      setAiLoading(false);
+    }
+  }, []);
+
+  const loadAnalytics = useCallback(async (forceAiRefresh = false) => {
+    if (!currentUser?.id) {
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
       setError(null);
       const result = await api.getDashboardAnalytics(currentUser.id);
       if (result.success) {
         setAnalytics(result.analytics);
+        loadAiInsights(result.analytics, forceAiRefresh);
       } else {
         setError(result.error || 'Не удалось загрузить аналитику');
       }
@@ -427,7 +515,7 @@ function DataPage() {
     } finally {
       setLoading(false);
     }
-  }, [currentUser?.id]);
+  }, [currentUser?.id, loadAiInsights]);
 
   useEffect(() => { loadAnalytics(); }, [loadAnalytics]);
 
@@ -452,13 +540,26 @@ function DataPage() {
         </div>
         <div className="header-actions">
           <button
-            onClick={loadAnalytics}
+            onClick={() => loadAnalytics()}
             style={{ padding:'0.625rem 1.25rem', background:'linear-gradient(135deg,#667eea,#764ba2)', color:'#fff', border:'none', borderRadius:8, fontWeight:700, fontSize:'0.875rem', cursor:'pointer' }}
           >
             🔄 Обновить
           </button>
+          <button
+            onClick={() => loadAiInsights(analytics, true)}
+            disabled={aiLoading}
+            style={{ padding:'0.625rem 1.25rem', background:'linear-gradient(135deg,#4facfe,#00f2fe)', color:'#fff', border:'none', borderRadius:8, fontWeight:700, fontSize:'0.875rem', cursor:'pointer', opacity: aiLoading ? 0.7 : 1 }}
+          >
+            {aiLoading ? '⏳ AI...' : '✨ AI Обновить'}
+          </button>
         </div>
       </div>
+
+      {aiUpdatedAt && (
+        <div style={{ marginBottom: '0.75rem', color: 'var(--text-secondary)', fontSize: '0.82rem', fontWeight: 600 }}>
+          AI обновлено: {formatDate(aiUpdatedAt)}
+        </div>
+      )}
 
       {/* View Tabs */}
       <div className="view-tabs">
@@ -475,7 +576,7 @@ function DataPage() {
       {/* Overview */}
       {selectedView === 'overview' && (
         <>
-          <InsightsSection analytics={analytics} />
+          <InsightsSection analytics={analytics} aiInsights={aiInsights} aiLoading={aiLoading} />
           <TrendChart last30Days={analytics.last30Days} />
           <Heatmap heatmapData={analytics.heatmapData} />
         </>
@@ -488,7 +589,7 @@ function DataPage() {
 
       {/* Predictions */}
       {selectedView === 'predictions' && (
-        <PredictionsSection analytics={analytics} />
+        <PredictionsSection analytics={analytics} aiPredictions={aiPredictions} aiLoading={aiLoading} />
       )}
 
       {/* Activities */}

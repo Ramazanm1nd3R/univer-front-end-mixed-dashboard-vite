@@ -1,142 +1,210 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap');
 
-/* ============================================
-   CSS VARIABLES
-   ============================================ */
 :root {
-  --bg-primary: #ffffff;
-  --bg-secondary: #f8f9fa;
+  --bg-primary: #f0f4f8;
+  --bg-secondary: #ffffff;
+  --bg-tertiary: #e8eef5;
   --bg-card: #ffffff;
-  --text-primary: #1a1a1a;
-  --text-secondary: #57606a;
-  --border-primary: #e5e7eb;
-  --border-hover: #d1d5db;
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.1);
-  --scrollbar-track: #f3f4f6;
-  --scrollbar-thumb: #d1d5db;
-  --scrollbar-thumb-hover: #9ca3af;
+
+  --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --gradient-success: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+  --gradient-warning: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  --gradient-info: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+
+  --text-primary: #2d3748;
+  --text-secondary: #718096;
+  --text-tertiary: #a0aec0;
+
+  --border-primary: rgba(255, 255, 255, 0.28);
+  --border-hover: rgba(102, 126, 234, 0.3);
+  --accent-primary: #667eea;
+
+  --shadow-neumorphic-out: 8px 8px 16px rgba(163, 177, 198, 0.6), -8px -8px 16px rgba(255, 255, 255, 0.9);
+  --shadow-neumorphic-in: inset 4px 4px 8px rgba(163, 177, 198, 0.4), inset -4px -4px 8px rgba(255, 255, 255, 0.7);
+  --glass-bg: rgba(255, 255, 255, 0.25);
+  --glass-border: rgba(255, 255, 255, 0.18);
+  --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+
+  --shadow-sm: 0 4px 12px rgba(31, 38, 135, 0.12);
+  --shadow-md: 0 18px 36px rgba(31, 38, 135, 0.16);
+  --scrollbar-track: #dfe7f3;
+  --scrollbar-thumb: #afbdd8;
+  --scrollbar-thumb-hover: #8ea1c4;
 }
 
 .light-theme {
-  --bg-primary: #ffffff;
-  --bg-secondary: #f8f9fa;
-  --bg-card: #ffffff;
-  --text-primary: #1a1a1a;
-  --text-secondary: #57606a;
-  --border-primary: #e5e7eb;
-  --border-hover: #d1d5db;
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.1);
-  --scrollbar-track: #f3f4f6;
-  --scrollbar-thumb: #d1d5db;
-  --scrollbar-thumb-hover: #9ca3af;
+  color-scheme: light;
 }
 
 .dark-theme {
-  --bg-primary: #0d1117;
-  --bg-secondary: #161b22;
-  --bg-card: #161b22;
-  --text-primary: #e6edf3;
-  --text-secondary: #8b949e;
-  --border-primary: #30363d;
-  --border-hover: #484f58;
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
-  --scrollbar-track: #161b22;
-  --scrollbar-thumb: #30363d;
-  --scrollbar-thumb-hover: #484f58;
+  color-scheme: dark;
+
+  --bg-primary: #1a1d2e;
+  --bg-secondary: #25293c;
+  --bg-tertiary: #2d3142;
+  --bg-card: #25293c;
+
+  --text-primary: #f7fafc;
+  --text-secondary: #cbd5e0;
+  --text-tertiary: #718096;
+
+  --border-primary: rgba(255, 255, 255, 0.11);
+  --border-hover: rgba(102, 126, 234, 0.42);
+
+  --shadow-neumorphic-out: 8px 8px 16px rgba(0, 0, 0, 0.4), -8px -8px 16px rgba(255, 255, 255, 0.02);
+  --shadow-neumorphic-in: inset 4px 4px 8px rgba(0, 0, 0, 0.3), inset -4px -4px 8px rgba(255, 255, 255, 0.02);
+  --glass-bg: rgba(255, 255, 255, 0.05);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
+
+  --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.28);
+  --shadow-md: 0 22px 44px rgba(0, 0, 0, 0.35);
+  --scrollbar-track: #24283a;
+  --scrollbar-thumb: #4a5775;
+  --scrollbar-thumb-hover: #697799;
 }
 
-/* ============================================
-   RESET & BASE
-   ============================================ */
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
 body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family: 'Space Grotesk', 'Manrope', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background: var(--bg-primary);
+  color: var(--text-primary);
 }
 
 .App {
   min-height: 100vh;
-  background: var(--bg-secondary);
   color: var(--text-primary);
-  transition: background-color 0.2s ease, color 0.2s ease;
+  background:
+    radial-gradient(circle at 16% 12%, rgba(102, 126, 234, 0.2), transparent 34%),
+    radial-gradient(circle at 84% 92%, rgba(79, 172, 254, 0.16), transparent 36%),
+    var(--bg-primary);
+  transition: background 0.4s ease, color 0.3s ease;
 }
 
-/* ============================================
-   MAIN CONTENT
-   ============================================ */
 .app-content {
-  max-width: 1600px;
+  max-width: 1480px;
   margin: 0 auto;
-  padding: 2rem;
-  min-height: calc(100vh - 80px);
+  padding: 1.25rem 2rem 2.25rem;
+  min-height: calc(100vh - 94px);
 }
 
-/* ============================================
-   CARDS (переиспользуемый паттерн)
-   ============================================ */
 .card {
   background: var(--bg-card);
-  border: 1px solid var(--border-primary);
-  border-radius: 12px;
-  padding: 1.5rem;
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
   box-shadow: var(--shadow-sm);
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
-.card:hover {
-  border-color: var(--border-hover);
-  box-shadow: var(--shadow-md);
+.notifications-container {
+  position: fixed;
+  right: 1.5rem;
+  top: 5.5rem;
+  z-index: 2200;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
 }
 
-/* ============================================
-   TASKS GRID
-   ============================================ */
-.tasks-view h2 {
-  margin-bottom: 2rem;
-  font-size: 1.875rem;
-  font-weight: 700;
+.notification {
+  min-width: 260px;
+  max-width: 360px;
+  padding: 0.85rem 1rem;
+  border-radius: 14px;
+  border: 1px solid var(--glass-border);
+  background: var(--glass-bg);
+  backdrop-filter: blur(16px) saturate(150%);
+  box-shadow: var(--glass-shadow);
   color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  animation: slideInRight 0.35s ease;
 }
 
-.tasks-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
-  gap: 1.5rem;
+.notification-success {
+  border-color: rgba(56, 239, 125, 0.4);
 }
 
-.tasks-grid > div {
-  background: var(--bg-card);
-  border: 1px solid var(--border-primary);
-  padding: 1.5rem;
-  border-radius: 12px;
-  box-shadow: var(--shadow-sm);
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+.notification-error {
+  border-color: rgba(245, 87, 108, 0.45);
 }
 
-.tasks-grid > div:hover {
-  border-color: var(--border-hover);
-  box-shadow: var(--shadow-md);
+.notification-info {
+  border-color: rgba(79, 172, 254, 0.4);
 }
 
-.tasks-grid > div h3 {
-  margin-bottom: 1rem;
-  font-size: 1.125rem;
+.notification-message {
   font-weight: 600;
-  color: var(--text-primary);
+  font-size: 0.9rem;
 }
 
-/* ============================================
-   SCROLLBAR
-   ============================================ */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.82;
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
 ::-webkit-scrollbar {
   width: 10px;
   height: 10px;
@@ -155,15 +223,22 @@ body {
   background: var(--scrollbar-thumb-hover);
 }
 
-/* ============================================
-   RESPONSIVE
-   ============================================ */
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   .app-content {
-    padding: 1rem;
+    padding: 1rem 1rem 1.75rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .notifications-container {
+    right: 1rem;
+    left: 1rem;
+    top: auto;
+    bottom: 1rem;
   }
 
-  .tasks-grid {
-    grid-template-columns: 1fr;
+  .notification {
+    max-width: none;
+    width: 100%;
   }
 }
