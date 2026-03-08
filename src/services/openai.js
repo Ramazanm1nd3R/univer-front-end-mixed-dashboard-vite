@@ -2,8 +2,8 @@ const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY || '';
 const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions';
 const MODEL = 'gpt-4o-mini';
 
-const INSIGHTS_CACHE_PREFIX = 'ai_insights_cache';
-const PREDICTIONS_CACHE_PREFIX = 'ai_predictions_cache';
+const INSIGHTS_CACHE_KEY = 'ai_insights_cache_v2';
+const PREDICTIONS_CACHE_KEY = 'ai_predictions_cache_v2';
 const CACHE_DURATION_MS = 60 * 60 * 1000; // 1 hour
 
 function parseJsonSafely(text, fallbackValue) {
@@ -14,28 +14,89 @@ function parseJsonSafely(text, fallbackValue) {
   }
 }
 
-function getCacheKey(prefix, analytics) {
-  const userScope = `${analytics.totalTasks}-${analytics.activeTasks}-${analytics.completedTasks}-${analytics.completionRate}`;
-  return `${prefix}:${userScope}`;
+function simpleHash(str) {
+  let hash = 0;
+  for (let i = 0; i < str.length; i += 1) {
+    const char = str.charCodeAt(i);
+    hash = (hash << 5) - hash + char;
+    hash &= hash;
+  }
+  return hash.toString(36);
 }
 
-function getCachedData(key) {
-  const raw = localStorage.getItem(key);
+function generateDataHash(analytics) {
+  const keyData = {
+    totalTasks: analytics.totalTasks,
+    activeTasks: analytics.activeTasks,
+    completedTasks: analytics.completedTasks,
+    completionRate: analytics.completionRate,
+    peakProductivityHour: analytics.peakProductivityHour,
+    peakProductivityDay: analytics.peakProductivityDay,
+    avgCompletionTime: analytics.avgCompletionTime,
+    topCategories: (analytics.topCategories || [])
+      .slice(0, 3)
+      .map((category) => ({ name: category.name, count: category.count })),
+    priorityDistribution: analytics.priorityDistribution || {},
+    recentTrend: (analytics.last30Days || [])
+      .slice(-7)
+      .map((day) => ({ date: day.date, completed: day.completed, active: day.active })),
+  };
+
+  return simpleHash(JSON.stringify(keyData));
+}
+
+function getCachedInsightsWithHash(dataHash) {
+  const raw = localStorage.getItem(INSIGHTS_CACHE_KEY);
   if (!raw) return null;
 
   const parsed = parseJsonSafely(raw, null);
-  if (!parsed?.timestamp || !parsed?.data) return null;
-
-  if (Date.now() - parsed.timestamp > CACHE_DURATION_MS) {
-    localStorage.removeItem(key);
+  if (
+    !parsed?.dataHash ||
+    parsed.dataHash !== dataHash ||
+    !parsed?.timestamp ||
+    Date.now() - parsed.timestamp > CACHE_DURATION_MS
+  ) {
+    localStorage.removeItem(INSIGHTS_CACHE_KEY);
     return null;
   }
 
+  console.log('✅ AI Insights: данные не изменились, используем кэш (экономия $0.0002)');
   return parsed.data;
 }
 
-function setCachedData(key, data) {
-  localStorage.setItem(key, JSON.stringify({ data, timestamp: Date.now() }));
+function setCachedInsightsWithHash(data, dataHash) {
+  localStorage.setItem(INSIGHTS_CACHE_KEY, JSON.stringify({
+    data,
+    dataHash,
+    timestamp: Date.now(),
+  }));
+}
+
+function getCachedPredictionsWithHash(dataHash) {
+  const raw = localStorage.getItem(PREDICTIONS_CACHE_KEY);
+  if (!raw) return null;
+
+  const parsed = parseJsonSafely(raw, null);
+  if (
+    !parsed?.dataHash ||
+    parsed.dataHash !== dataHash ||
+    !parsed?.timestamp ||
+    Date.now() - parsed.timestamp > CACHE_DURATION_MS
+  ) {
+    localStorage.removeItem(PREDICTIONS_CACHE_KEY);
+    return null;
+  }
+
+  console.log('✅ AI Predictions: данные не изменились, используем кэш (экономия $0.00015)');
+  return parsed.data;
+}
+
+function setCachedPredictionsWithHash(data, dataHash) {
+  localStorage.setItem(PREDICTIONS_CACHE_KEY, JSON.stringify({
+    data,
+    dataHash,
+    timestamp: Date.now(),
+  }));
 }
 
 async function callOpenAI({ systemPrompt, userPrompt, maxTokens = 800, temperature = 0.7 }) {
@@ -203,9 +264,9 @@ function isOpenAIAvailable() {
 
 export async function generateInsights(analytics) {
   const fallback = getFallbackInsights(analytics);
-  const cacheKey = getCacheKey(INSIGHTS_CACHE_PREFIX, analytics);
+  const dataHash = generateDataHash(analytics);
 
-  const cached = getCachedData(cacheKey);
+  const cached = getCachedInsightsWithHash(dataHash);
   if (cached) return cached;
 
   if (!isOpenAIAvailable()) {
@@ -214,6 +275,7 @@ export async function generateInsights(analytics) {
   }
 
   try {
+    console.log(`🤖 Генерируем новые AI Insights (hash: ${dataHash})`);
     const insights = await callOpenAI({
       systemPrompt: SYSTEM_PROMPT,
       userPrompt: buildInsightsPrompt(analytics),
@@ -228,7 +290,7 @@ export async function generateInsights(analytics) {
       topCategory: insights?.topCategory || fallback.topCategory,
     };
 
-    setCachedData(cacheKey, normalized);
+    setCachedInsightsWithHash(normalized, dataHash);
     return normalized;
   } catch (error) {
     console.error('❌ Ошибка генерации AI инсайтов:', error);
@@ -238,9 +300,9 @@ export async function generateInsights(analytics) {
 
 export async function generatePredictions(analytics) {
   const fallback = getFallbackPredictions(analytics);
-  const cacheKey = getCacheKey(PREDICTIONS_CACHE_PREFIX, analytics);
+  const dataHash = generateDataHash(analytics);
 
-  const cached = getCachedData(cacheKey);
+  const cached = getCachedPredictionsWithHash(dataHash);
   if (cached) return cached;
 
   if (!isOpenAIAvailable()) {
@@ -249,6 +311,7 @@ export async function generatePredictions(analytics) {
   }
 
   try {
+    console.log(`🤖 Генерируем новые AI Predictions (hash: ${dataHash})`);
     const predictions = await callOpenAI({
       systemPrompt: PREDICTIONS_SYSTEM_PROMPT,
       userPrompt: buildPredictionsPrompt(analytics),
@@ -263,7 +326,7 @@ export async function generatePredictions(analytics) {
       completionSpeed: predictions?.completionSpeed || fallback.completionSpeed,
     };
 
-    setCachedData(cacheKey, normalized);
+    setCachedPredictionsWithHash(normalized, dataHash);
     return normalized;
   } catch (error) {
     console.error('❌ Ошибка генерации AI прогнозов:', error);

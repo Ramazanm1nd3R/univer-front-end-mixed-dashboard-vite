@@ -12,7 +12,7 @@ function NotFoundPage({ onNavigate }) {
       textAlign: 'center',
       padding: '2rem'
     }}>
-      <h1 style={{ fontSize: '4rem', margin: '0', color: '#667eea' }}>404</h1>
+      <h1 style={{ fontSize: '4rem', margin: '0', color: '#3b82f6' }}>404</h1>
       <h2 style={{ marginTop: '0.5rem', color: '#333' }}>Страница не найдена</h2>
       <p style={{ color: '#666', maxWidth: '400px' }}>
         Запрашиваемая страница не существует или была удалена.
@@ -22,7 +22,7 @@ function NotFoundPage({ onNavigate }) {
         style={{
           marginTop: '1.5rem',
           padding: '12px 32px',
-          background: 'linear-gradient(135deg, #667eea, #764ba2)',
+          background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
           color: 'white',
           border: 'none',
           borderRadius: '8px',

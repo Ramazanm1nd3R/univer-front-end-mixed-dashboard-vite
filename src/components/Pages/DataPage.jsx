@@ -65,7 +65,7 @@ function ErrorState({ error, retry }) {
       <div style={{ fontSize:'4rem' }}>❌</div>
       <h2 style={{ color:'var(--text-primary)', fontSize:'1.5rem', fontWeight:800, margin:0 }}>Ошибка загрузки</h2>
       <p style={{ color:'var(--text-secondary)', textAlign:'center', maxWidth:420, margin:0 }}>{error}</p>
-      <button onClick={retry} style={{ padding:'0.75rem 2rem', background:'linear-gradient(135deg,#667eea,#764ba2)', color:'#fff', border:'none', borderRadius:10, fontWeight:700, fontSize:'1rem', cursor:'pointer' }}>
+      <button onClick={retry} style={{ padding:'0.75rem 2rem', background:'linear-gradient(135deg,#3b82f6,#1d4ed8)', color:'#fff', border:'none', borderRadius:10, fontWeight:700, fontSize:'1rem', cursor:'pointer' }}>
         🔄 Попробовать снова
       </button>
     </div>
@@ -80,7 +80,7 @@ function EmptyState({ navigate }) {
       <p style={{ color:'var(--text-secondary)', textAlign:'center', maxWidth:420, margin:0, lineHeight:1.6 }}>
         Создайте несколько задач на Dashboard, чтобы здесь появилась статистика и графики.
       </p>
-      <button onClick={() => navigate('/')} style={{ padding:'0.75rem 2rem', background:'linear-gradient(135deg,#667eea,#764ba2)', color:'#fff', border:'none', borderRadius:10, fontWeight:700, fontSize:'1rem', cursor:'pointer' }}>
+      <button onClick={() => navigate('/')} style={{ padding:'0.75rem 2rem', background:'linear-gradient(135deg,#3b82f6,#1d4ed8)', color:'#fff', border:'none', borderRadius:10, fontWeight:700, fontSize:'1rem', cursor:'pointer' }}>
         ➕ Создать задачу
       </button>
     </div>
@@ -300,7 +300,7 @@ function InsightsSection({ analytics, aiInsights, aiLoading }) {
           </div>
         )}
         {aiInsights && (
-          <span style={{ fontSize: '0.75rem', background: 'linear-gradient(135deg,#667eea,#764ba2)', color: '#fff', padding: '0.25rem 0.75rem', borderRadius: 12, fontWeight: 700 }}>
+          <span style={{ fontSize: '0.75rem', background: 'linear-gradient(135deg,#3b82f6,#1d4ed8)', color: '#fff', padding: '0.25rem 0.75rem', borderRadius: 12, fontWeight: 700 }}>
             ✨ AI
           </span>
         )}
@@ -363,7 +363,7 @@ function PredictionsSection({ analytics, aiPredictions, aiLoading }) {
           </div>
         )}
         {aiPredictions && (
-          <span style={{ fontSize: '0.75rem', background: 'linear-gradient(135deg,#667eea,#764ba2)', color: '#fff', padding: '0.25rem 0.75rem', borderRadius: 12, fontWeight: 700 }}>
+          <span style={{ fontSize: '0.75rem', background: 'linear-gradient(135deg,#3b82f6,#1d4ed8)', color: '#fff', padding: '0.25rem 0.75rem', borderRadius: 12, fontWeight: 700 }}>
             ✨ AI
           </span>
         )}
@@ -464,6 +464,7 @@ function DataPage() {
   const [aiPredictions, setAiPredictions] = useState(null);
   const [aiLoading, setAiLoading] = useState(false);
   const [aiUpdatedAt, setAiUpdatedAt] = useState(null);
+  const [isAiFromCache, setIsAiFromCache] = useState(false);
   const lastAiCallRef = useRef(0);
 
   const loadAiInsights = useCallback(async (analyticsData, force = false) => {
@@ -472,20 +473,33 @@ function DataPage() {
     const MIN_AI_INTERVAL = 5 * 60 * 1000;
     const now = Date.now();
     if (!force && now - lastAiCallRef.current < MIN_AI_INTERVAL) {
+      console.log('⏳ Слишком частый вызов AI (< 5 мин)');
       return;
     }
 
     lastAiCallRef.current = now;
     setAiLoading(true);
+    setIsAiFromCache(false);
 
     try {
+      const startTime = performance.now();
       const [insights, predictions] = await Promise.all([
         generateInsights(analyticsData),
         generatePredictions(analyticsData),
       ]);
+      const duration = performance.now() - startTime;
+      const fromCache = duration < 100;
+
       setAiInsights(insights);
       setAiPredictions(predictions);
       setAiUpdatedAt(new Date().toISOString());
+      setIsAiFromCache(fromCache);
+
+      if (fromCache) {
+        console.log(`✅ AI загружен из кэша за ${duration.toFixed(0)}ms (экономия $0.00035)`);
+      } else {
+        console.log(`🤖 AI сгенерирован за ${duration.toFixed(0)}ms (потрачено $0.00035)`);
+      }
     } catch (aiError) {
       console.error('❌ Ошибка AI генерации:', aiError);
     } finally {
@@ -541,7 +555,7 @@ function DataPage() {
         <div className="header-actions">
           <button
             onClick={() => loadAnalytics()}
-            style={{ padding:'0.625rem 1.25rem', background:'linear-gradient(135deg,#667eea,#764ba2)', color:'#fff', border:'none', borderRadius:8, fontWeight:700, fontSize:'0.875rem', cursor:'pointer' }}
+            style={{ padding:'0.625rem 1.25rem', background:'linear-gradient(135deg,#3b82f6,#1d4ed8)', color:'#fff', border:'none', borderRadius:8, fontWeight:700, fontSize:'0.875rem', cursor:'pointer' }}
           >
             🔄 Обновить
           </button>
@@ -556,8 +570,18 @@ function DataPage() {
       </div>
 
       {aiUpdatedAt && (
-        <div style={{ marginBottom: '0.75rem', color: 'var(--text-secondary)', fontSize: '0.82rem', fontWeight: 600 }}>
-          AI обновлено: {formatDate(aiUpdatedAt)}
+        <div style={{ marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+          <span style={{ color: 'var(--text-secondary)', fontSize: '0.82rem', fontWeight: 600 }}>
+            AI обновлено: {formatDate(aiUpdatedAt)}
+          </span>
+          {isAiFromCache && (
+            <span style={{ fontSize: '0.75rem', background: 'linear-gradient(135deg,#10b981,#059669)', color: '#fff', padding: '0.25rem 0.75rem', borderRadius: 12, fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
+              ⚡ Из кэша
+              <span style={{ opacity: 0.8, fontSize: '0.7rem' }}>
+                (экономия $0.00035)
+              </span>
+            </span>
+          )}
         </div>
       )}
 

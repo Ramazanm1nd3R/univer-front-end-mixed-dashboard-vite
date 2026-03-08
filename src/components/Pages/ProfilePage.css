@@ -71,13 +71,13 @@
 }
 
 .light-theme .avatar-large {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
   color: white;
   border-color: #e5e7eb;
 }
 
 .dark-theme .avatar-large {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
   color: white;
   border-color: #30363d;
 }
@@ -483,7 +483,7 @@
 }
 
 .toggle-switch input:checked + .toggle-slider {
-  background: #667eea;
+  background: #3b82f6;
 }
 
 .toggle-switch input:checked + .toggle-slider:before {

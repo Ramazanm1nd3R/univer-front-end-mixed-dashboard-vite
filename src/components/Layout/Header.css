@@ -104,12 +104,12 @@
 .nav-button.active {
   background: var(--gradient-primary);
   color: white;
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+  box-shadow: var(--shadow-primary);
 }
 
 .nav-button.active:hover {
   transform: translateY(-2px) scale(1.05);
-  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+  box-shadow: var(--shadow-primary-hover);
 }
 
 .theme-toggle {
@@ -125,12 +125,12 @@
   align-items: center;
   justify-content: center;
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  box-shadow: var(--shadow-primary);
 }
 
 .theme-toggle:hover {
   transform: scale(1.1) rotate(180deg);
-  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+  box-shadow: var(--shadow-primary-hover);
 }
 
 .theme-toggle:active {
@@ -184,7 +184,7 @@
 .nav-button:focus-visible,
 .theme-toggle:focus-visible,
 .logout-button:focus-visible {
-  outline: 2px solid rgba(102, 126, 234, 0.5);
+  outline: 2px solid rgba(59, 130, 246, 0.5);
   outline-offset: 2px;
 }
 

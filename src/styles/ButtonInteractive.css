@@ -12,13 +12,13 @@
 }
 
 .button-interactive-container h3 {
-  color: #667eea;
+  color: #3b82f6;
   margin-bottom: 2rem;
   font-size: 1.3rem;
 }
 
 .interactive-btn {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
   color: white;
   border: none;
   padding: 1.5rem 3rem;
@@ -27,18 +27,18 @@
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 5px 15px rgba(59, 130, 246, 0.3);
 }
 
 .interactive-btn.hovered {
   transform: translateY(-5px) scale(1.05);
-  box-shadow: 0 10px 25px rgba(102, 126, 234, 0.5);
-  background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+  box-shadow: 0 10px 25px rgba(59, 130, 246, 0.5);
+  background: linear-gradient(135deg, #1d4ed8 0%, #3b82f6 100%);
 }
 
 .interactive-btn.active {
   transform: translateY(0) scale(0.95);
-  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.4);
 }
 
 .button-stats {

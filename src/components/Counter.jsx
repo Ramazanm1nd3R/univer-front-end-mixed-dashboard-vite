@@ -11,12 +11,12 @@ function Counter() {
       boxShadow: '0 10px 30px rgba(0,0,0,0.1)',
       textAlign: 'center'
     }}>
-      <h3 style={{ color: '#667eea', marginBottom: '1.5rem' }}>Счетчик</h3>
+      <h3 style={{ color: '#3b82f6', marginBottom: '1.5rem' }}>Счетчик</h3>
       <div style={{ fontSize: '4rem', fontWeight: 'bold', margin: '2rem 0' }}>{count}</div>
       <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
         <button onClick={() => setCount(Math.max(0, count - 1))} 
           style={{
-            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
             color: 'white',
             border: 'none',
             padding: '1rem 2rem',
@@ -35,7 +35,7 @@ function Counter() {
           }}>Сброс</button>
         <button onClick={() => setCount(count + 1)} 
           style={{
-            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
             color: 'white',
             border: 'none',
             padding: '1rem 2rem',
