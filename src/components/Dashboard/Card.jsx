@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 
 const CATEGORY_CONFIG = {
   work:     { emoji: '💼', label: 'Работа' },
@@ -103,4 +103,4 @@ function Card({ item, onDelete, onToggleStatus, onToggleLike, onEdit }) {
   );
 }
 
-export default Card;
+export default memo(Card);

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { memo, useState } from 'react';
 
 function TaskList({ items, onToggle, onDelete, onEdit, onDetails }) {
   const [editingId, setEditingId] = useState(null);
@@ -144,4 +144,4 @@ function TaskList({ items, onToggle, onDelete, onEdit, onDetails }) {
   );
 }
 
-export default TaskList;
+export default memo(TaskList);

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import '../../styles/Dashboard.css';
 
 function FilterPanel({ filters, setFilters, sortBy, setSortBy }) {
@@ -68,4 +68,4 @@ function FilterPanel({ filters, setFilters, sortBy, setSortBy }) {
   );
 }
 
-export default FilterPanel;
+export default memo(FilterPanel);
