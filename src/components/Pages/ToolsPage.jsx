@@ -243,6 +243,7 @@ function QuickStats() {
 
 function ToolsPage() {
   const { items } = useDashboardData();
+  const [activeTab, setActiveTab] = useState('pomodoro');
   const userCategories = useMemo(
     () => [...new Set(items.map((item) => item.category).filter(Boolean))],
     [items],
@@ -255,22 +256,44 @@ function ToolsPage() {
         <p>Focus tools to boost your productivity</p>
       </div>
 
-      <div className="tools-grid-vertical">
-        <div className="tool-section">
-          <div className="tool-card">
-            <PomodoroTimer />
-          </div>
-        </div>
+      <div className="tools-tabs">
+        <button
+          className={`tools-tab-button ${activeTab === 'pomodoro' ? 'active' : ''}`}
+          onClick={() => setActiveTab('pomodoro')}
+          type="button"
+        >
+          ⏱️ Pomodoro Timer
+        </button>
+        <button
+          className={`tools-tab-button ${activeTab === 'wheel' ? 'active' : ''}`}
+          onClick={() => setActiveTab('wheel')}
+          type="button"
+        >
+          🎯 Колесо Баланса
+        </button>
+      </div>
 
-        <div className="tool-section">
-          <LifeWheelTool userCategories={userCategories} />
-        </div>
+      <div className="tools-tab-panel">
+        {activeTab === 'pomodoro' && (
+          <>
+            <div className="tool-section">
+              <div className="tool-card">
+                <PomodoroTimer />
+              </div>
+            </div>
+            <div className="tool-section">
+              <div className="tool-card">
+                <QuickStats />
+              </div>
+            </div>
+          </>
+        )}
 
-        <div className="tool-section">
-          <div className="tool-card">
-            <QuickStats />
+        {activeTab === 'wheel' && (
+          <div className="tool-section">
+            <LifeWheelTool userCategories={userCategories} />
           </div>
-        </div>
+        )}
       </div>
     </div>
   );
