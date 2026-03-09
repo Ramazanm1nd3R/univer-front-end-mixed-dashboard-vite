@@ -262,6 +262,77 @@ function isOpenAIAvailable() {
   return Boolean(OPENAI_API_KEY);
 }
 
+function getFallbackWheelAnalysis(wheelData) {
+  const average = Number.parseFloat(wheelData.averageScore || 0);
+  let summary = '';
+
+  if (average >= 7) {
+    summary = `Отличный баланс! Средний балл ${average}/10 показывает гармоничное распределение внимания между сферами.`;
+  } else if (average >= 5) {
+    summary = `Хорошая база (${average}/10), но видно точки роста. Начни с усиления сферы "${wheelData.lowestCategory.name}".`;
+  } else {
+    summary = `Сейчас баланс проседает (${average}/10). Первый шаг: подними "${wheelData.lowestCategory.name}" хотя бы на 1-2 балла за неделю.`;
+  }
+
+  return {
+    summary,
+    recommendations: [
+      `Ежедневно выделяй минимум 30 минут на сферу "${wheelData.lowestCategory.name}".`,
+      `Опирайся на сильную сферу "${wheelData.highestCategory.name}", чтобы поддержать остальные направления.`,
+      'Ставь короткие недельные цели по 2-3 приоритетным сферам и фиксируй прогресс раз в день.',
+    ],
+  };
+}
+
+export async function generateWheelAnalysis(wheelData) {
+  const fallback = getFallbackWheelAnalysis(wheelData);
+
+  if (!isOpenAIAvailable()) {
+    return fallback;
+  }
+
+  try {
+    const prompt = `Проанализируй Колесо Баланса Жизни пользователя.
+
+КАТЕГОРИИ И ОЦЕНКИ:
+${wheelData.categories.map((category) => `- ${category.name}: ${category.score}/10`).join('\n')}
+
+СТАТИСТИКА:
+- Средний балл: ${wheelData.averageScore}/10
+- Самая сильная сфера: ${wheelData.highestCategory.name} (${wheelData.highestCategory.score}/10)
+- Требует внимания: ${wheelData.lowestCategory.name} (${wheelData.lowestCategory.score}/10)
+
+Дай персональный анализ:
+1. Краткая общая оценка баланса (1-2 предложения)
+2. 3-4 конкретные рекомендации
+
+Тон: дружелюбный, мотивирующий, конкретный.
+
+Верни JSON:
+{
+  "summary": "общая оценка баланса",
+  "recommendations": ["рекомендация 1", "рекомендация 2", "рекомендация 3"]
+}`;
+
+    const response = await callOpenAI({
+      systemPrompt: 'Ты — коуч по life balance. Помогаешь людям находить баланс между сферами жизни.',
+      userPrompt: prompt,
+      maxTokens: 500,
+      temperature: 0.7,
+    });
+
+    return {
+      summary: response?.summary || fallback.summary,
+      recommendations: Array.isArray(response?.recommendations) && response.recommendations.length > 0
+        ? response.recommendations
+        : fallback.recommendations,
+    };
+  } catch (error) {
+    console.error('AI Wheel Analysis error:', error);
+    return fallback;
+  }
+}
+
 export async function generateInsights(analytics) {
   const fallback = getFallbackInsights(analytics);
   const dataHash = generateDataHash(analytics);
@@ -337,4 +408,5 @@ export async function generatePredictions(analytics) {
 export default {
   generateInsights,
   generatePredictions,
+  generateWheelAnalysis,
 };

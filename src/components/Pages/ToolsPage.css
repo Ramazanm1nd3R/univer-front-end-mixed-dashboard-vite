@@ -21,10 +21,14 @@
   font-size: 1rem;
 }
 
-.tools-content {
-  display: grid;
-  grid-template-columns: 1fr 400px;
+.tools-grid-vertical {
+  display: flex;
+  flex-direction: column;
   gap: 2rem;
+}
+
+.tool-section {
+  width: 100%;
 }
 
 .tool-card {
@@ -271,7 +275,7 @@
   letter-spacing: 0.5px;
 }
 
-.tool-sidebar h3 {
+.quick-stats-tool h3 {
   margin: 0 0 1.5rem;
   font-size: 1.25rem;
   font-weight: 700;
@@ -388,17 +392,13 @@
   color: var(--text-secondary);
 }
 
-.dark-theme .tool-sidebar h3 {
+.dark-theme .quick-stats-tool h3 {
   color: var(--text-primary);
 }
 
 @media (max-width: 1024px) {
-  .tools-content {
-    grid-template-columns: 1fr;
-  }
-
-  .tool-sidebar {
-    order: -1;
+  .tools-grid-vertical {
+    gap: 1.5rem;
   }
 }
 

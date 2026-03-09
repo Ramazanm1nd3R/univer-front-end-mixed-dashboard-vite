@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useDashboardData } from '../../context/DashboardContext';
+import LifeWheelTool from '../Tools/LifeWheelTool';
 import './ToolsPage.css';
 
 const MODES = {
@@ -241,6 +242,12 @@ function QuickStats() {
 }
 
 function ToolsPage() {
+  const { items } = useDashboardData();
+  const userCategories = useMemo(
+    () => [...new Set(items.map((item) => item.category).filter(Boolean))],
+    [items],
+  );
+
   return (
     <div className="tools-page">
       <div className="tools-header">
@@ -248,14 +255,18 @@ function ToolsPage() {
         <p>Focus tools to boost your productivity</p>
       </div>
 
-      <div className="tools-content">
-        <div className="tool-main">
+      <div className="tools-grid-vertical">
+        <div className="tool-section">
           <div className="tool-card">
             <PomodoroTimer />
           </div>
         </div>
 
-        <div className="tool-sidebar">
+        <div className="tool-section">
+          <LifeWheelTool userCategories={userCategories} />
+        </div>
+
+        <div className="tool-section">
           <div className="tool-card">
             <QuickStats />
           </div>
