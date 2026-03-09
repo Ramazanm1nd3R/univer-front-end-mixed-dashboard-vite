@@ -68,16 +68,34 @@ function Dashboard() {
   }, [items, filters, sortBy]);
 
   const stats = useMemo(() => {
+    const totalTasks = items.length;
     const activeCount = items.filter((item) => item.status === 'active').length;
     const completedCount = items.filter((item) => item.status === 'completed').length;
     const highCount = items.filter((item) => item.priority === 'high' && item.status === 'active').length;
-    const completionPct = items.length > 0 ? Math.round((completedCount / items.length) * 100) : 0;
+    const completionPct = totalTasks > 0 ? Math.round((completedCount / totalTasks) * 100) : 0;
+
+    // Consecutive days with at least one completed task.
+    const completedDaySet = new Set(
+      items
+        .filter((item) => item.status === 'completed')
+        .map((item) => new Date(item.updatedAt || item.date).toISOString().slice(0, 10))
+    );
+    let streak = 0;
+    const cursor = new Date();
+    while (true) {
+      const key = cursor.toISOString().slice(0, 10);
+      if (!completedDaySet.has(key)) break;
+      streak += 1;
+      cursor.setDate(cursor.getDate() - 1);
+    }
 
     return {
+      totalTasks,
       activeCount,
       completedCount,
       highCount,
       completionPct,
+      streak,
     };
   }, [items]);
 
@@ -144,13 +162,27 @@ function Dashboard() {
     <div className="dashboard-container">
       <div className="dashboard-hero">
         <div className="hero-content">
-          <div className="welcome-section">
-            <h1 className="hero-title">👋 Привет, {currentUser.firstName}!</h1>
-            <p className="hero-subtitle">
-              {stats.activeCount > 0
-                ? `${stats.activeCount} активных задач${stats.highCount > 0 ? ` · ${stats.highCount} 🔥 срочных` : ''}`
-                : 'Все задачи выполнены — отличная работа! 🎉'}
-            </p>
+          <div className="hero-professional">
+            <div className="hero-brand">
+              <h1 className="hero-title">
+                TaskFlow <span className="ai-badge">AI</span>
+              </h1>
+              <p className="tagline">Smart Task Management with AI Insights</p>
+            </div>
+            <div className="hero-stats-row">
+              <div className="stat-compact">
+                <span className="stat-number">{stats.totalTasks}</span>
+                <span className="stat-label-compact">Total Tasks</span>
+              </div>
+              <div className="stat-compact">
+                <span className="stat-number">{stats.completionPct}%</span>
+                <span className="stat-label-compact">Completion</span>
+              </div>
+              <div className="stat-compact">
+                <span className="stat-number">{stats.streak}</span>
+                <span className="stat-label-compact">Day Streak</span>
+              </div>
+            </div>
           </div>
           <button className="cta-button" onClick={openAddModal}>
             <span className="cta-icon">✨</span>

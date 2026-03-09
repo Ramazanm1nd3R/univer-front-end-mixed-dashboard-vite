@@ -56,10 +56,12 @@ function AppContent({ isDarkTheme, toggleTheme }) {
     location.pathname === '/'
       ? 'dashboard'
       : location.pathname.replace('/', '');
+  const knownRoutes = new Set(['/', '/dashboard', '/tools', '/data', '/profile', '/login', '/register']);
+  const is404Route = !knownRoutes.has(location.pathname);
 
   return (
     <>
-      {currentUser && (
+      {currentUser && !is404Route && (
         <Header
           onViewChange={(view) => navigate(view === 'dashboard' ? '/' : `/${view}`)}
           currentView={currentView}
@@ -68,9 +70,9 @@ function AppContent({ isDarkTheme, toggleTheme }) {
         />
       )}
 
-      <main className="app-content">
+      <main className={`app-content ${is404Route ? 'app-content-404' : ''}`}>
         <Suspense fallback={<RouteLoading />}>
-          {currentUser && <Notifications />}
+          {currentUser && !is404Route && <Notifications />}
 
           <Routes>
             <Route

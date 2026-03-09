@@ -82,7 +82,7 @@ function Register({ onSwitchToLogin }) {
     <div className="auth-container">
       <div className="auth-card">
         <div className="auth-header">
-          <h1>🎯 Mixed Dashboard</h1>
+          <h1>🎯 TaskFlow AI</h1>
           <h2>Регистрация</h2>
           <p>Создайте аккаунт для доступа к системе</p>
         </div>

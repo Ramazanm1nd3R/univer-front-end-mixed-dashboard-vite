@@ -19,7 +19,7 @@ const initDemoAccount = () => {
       lastLogin: new Date().toISOString(),
       profile: {
         phone: '+7 700 123 4567',
-        bio: 'Это демонстрационный аккаунт для тестирования системы Mixed Dashboard. Все данные в этом аккаунте являются примерами.',
+        bio: 'Это демонстрационный аккаунт для тестирования системы TaskFlow AI. Все данные в этом аккаунте являются примерами.',
         company: 'Demo Company',
         position: 'Тестовый пользователь',
         location: 'Алматы, Казахстан',
