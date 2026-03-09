@@ -48,11 +48,11 @@ def send_email_results(user_email, code, verification_type):
         </head>
         <body>
             <div class="header">
-                <h1>{type_emoji} Mixed Dashboard - Код верификации</h1>
+                <h1>{type_emoji} TaskFlow AI - Код верификации</h1>
                 <p>Дата: {timestamp}</p>
             </div>
             <h2>Здравствуйте!</h2>
-            <p>Вы запросили код для {type_text} в системе <strong>Mixed Dashboard</strong>.</p>
+            <p>Вы запросили код для {type_text} в системе <strong>TaskFlow AI</strong>.</p>
             <div class="code-box">
                 <p style="margin: 0; font-size: 14px; color: #666;">Ваш код верификации:</p>
                 <div class="code">{code}</div>
@@ -63,7 +63,7 @@ def send_email_results(user_email, code, verification_type):
             </div>
             <hr style="margin-top: 30px;">
             <p style="color: #666; font-size: 0.9em;">
-                Автоматический email системы "Mixed Dashboard"<br>
+                Автоматический email системы "TaskFlow AI"<br>
                 Если вы не запрашивали этот код, просто проигнорируйте это письмо.
             </p>
         </body>
@@ -71,7 +71,7 @@ def send_email_results(user_email, code, verification_type):
         """
         
         msg = MIMEMultipart('alternative')
-        msg['Subject'] = f"{type_emoji} Код верификации Mixed Dashboard - {code}"
+        msg['Subject'] = f"{type_emoji} Код верификации TaskFlow AI - {code}"
         msg['From'] = EMAIL_SENDER
         msg['To'] = user_email
         

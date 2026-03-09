@@ -1,16 +1,56 @@
-# React + Vite
+# TaskFlow AI
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Smart Task Management with AI Insights.
 
-Currently, two official plugins are available:
+TaskFlow AI is a React + Flask + SQLite productivity app focused on practical task planning, analytics, and AI-generated recommendations.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Core Features
 
-## React Compiler
+- Task dashboard with filtering, sorting, priorities, and status tracking
+- Add/Edit task workflows with controlled forms and validation
+- Analytics page with trends, heatmap, predictions, and AI insights
+- Productivity tools page with Pomodoro timer and quick daily stats
+- Profile page with achievements, activity overview, and settings
+- Auth flow with verification code support
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Tech Stack
 
-## Expanding the ESLint configuration
+- Frontend: React 19 + React Router + Vite
+- Backend: Flask + SQLite
+- AI: OpenAI Chat Completions API (`gpt-4o-mini`)
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Local Run
+
+1. Install frontend deps:
+
+```bash
+npm install
+```
+
+2. Start frontend:
+
+```bash
+npm run dev
+```
+
+3. Start backend (from `backend/`):
+
+```bash
+pip install -r requirements.txt
+python server.py
+```
+
+## Environment
+
+Create `.env` in project root:
+
+```bash
+VITE_API_URL=http://localhost:5001/api
+VITE_OPENAI_API_KEY=your_openai_key
+```
+
+## Build
+
+```bash
+npm run build
+```

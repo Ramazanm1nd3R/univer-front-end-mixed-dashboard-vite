@@ -40,7 +40,7 @@ function Login({ onSwitchToRegister }) {
     <div className="auth-container">
       <div className="auth-card">
         <div className="auth-header">
-          <h1>🎯 Mixed Dashboard</h1>
+          <h1>🎯 TaskFlow AI</h1>
           <h2>Вход в систему</h2>
           <p>Добро пожаловать! Введите свои данные для входа.</p>
         </div>

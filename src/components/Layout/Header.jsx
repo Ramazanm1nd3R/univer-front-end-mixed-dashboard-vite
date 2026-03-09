@@ -23,7 +23,7 @@ function Header({ onViewChange, currentView, isDarkTheme, toggleTheme }) {
     <header className="app-header">
       <div className="header-content">
         <h1 className="logo" onClick={() => handleNavigate('dashboard')}>
-          🎯 Mixed Dashboard
+          🎯 TaskFlow AI
         </h1>
         
         {/* Навигационное меню - Лаба 4 Задача 4 ✅ */}
