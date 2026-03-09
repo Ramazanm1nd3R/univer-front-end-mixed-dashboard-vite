@@ -162,25 +162,25 @@ function Dashboard() {
     <div className="dashboard-container">
       <div className="dashboard-hero">
         <div className="hero-content">
-          <div className="hero-professional">
+          <div className="hero-text">
             <div className="hero-brand">
               <h1 className="hero-title">
-                TaskFlow <span className="ai-badge">AI</span>
+                TaskFlow <span className="ai-badge-hero">AI</span>
               </h1>
-              <p className="tagline">Smart Task Management with AI Insights</p>
+              <p className="hero-tagline">Smart Task Management with AI Insights</p>
             </div>
-            <div className="hero-stats-row">
-              <div className="stat-compact">
-                <span className="stat-number">{stats.totalTasks}</span>
-                <span className="stat-label-compact">Total Tasks</span>
+            <div className="hero-stats-compact">
+              <div className="hero-stat">
+                <span className="hero-stat-value">{stats.totalTasks}</span>
+                <span className="hero-stat-label">Total Tasks</span>
               </div>
-              <div className="stat-compact">
-                <span className="stat-number">{stats.completionPct}%</span>
-                <span className="stat-label-compact">Completion</span>
+              <div className="hero-stat">
+                <span className="hero-stat-value">{stats.completionPct}%</span>
+                <span className="hero-stat-label">Completion</span>
               </div>
-              <div className="stat-compact">
-                <span className="stat-number">{stats.streak}</span>
-                <span className="stat-label-compact">Day Streak</span>
+              <div className="hero-stat">
+                <span className="hero-stat-value">{stats.streak}</span>
+                <span className="hero-stat-label">Day Streak</span>
               </div>
             </div>
           </div>

@@ -53,15 +53,6 @@ function Header({ onViewChange, currentView, isDarkTheme, toggleTheme }) {
             👤 Профиль
           </button>
 
-          {/* Кнопка для теста NotFound (можно убрать после защиты) */}
-          <button
-            className="nav-button"
-            onClick={() => handleNavigate('invalid-page-12345')}
-            style={{ opacity: 0.6, fontSize: '0.875rem' }}
-            title="Тест 404"
-          >
-            🔍 404
-          </button>
         </nav>
 
         {/* Информация о пользователе */}

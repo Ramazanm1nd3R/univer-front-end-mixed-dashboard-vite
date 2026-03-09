@@ -549,7 +549,32 @@ function DataPage() {
       {/* Header */}
       <div className="page-header">
         <div>
-          <h1>📊 Аналитика</h1>
+          <div className="page-header-title">
+            <div className="title-icon-wrapper">
+              <svg
+                className="title-icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M3 3v18h18"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <path
+                  d="M18 17V9m-5 8v-5m-5 5v-3"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </div>
+            <h1>Аналитика</h1>
+          </div>
           <p>Статистика и инсайты по твоим задачам • {analytics.totalTasks} задач всего</p>
         </div>
         <div className="header-actions">
