@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../services/api';
+import { useFetch } from '../../hooks/useFetch';
 import ServerError from '../shared/ServerError';
 import './ProfilePage.css';
 
@@ -16,10 +17,6 @@ function LoadingState() {
 function ProfilePage() {
   const { currentUser, logout } = useAuth();
 
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [analytics, setAnalytics] = useState(null);
-
   const [settings, setSettings] = useState(() => {
     try {
       return JSON.parse(localStorage.getItem('taskflow-settings') || 'null') || {
@@ -31,29 +28,21 @@ function ProfilePage() {
     }
   });
 
+  const {
+    data: analyticsResponse,
+    loading,
+    error,
+    execute: loadAnalytics,
+  } = useFetch(api.getDashboardAnalytics);
+
+  const analytics = analyticsResponse?.analytics || null;
+
   const loadProfileData = useCallback(async () => {
     if (!currentUser?.id) {
-      setLoading(false);
       return;
     }
-
-    try {
-      setLoading(true);
-      setError(null);
-
-      const result = await api.getDashboardAnalytics(currentUser.id);
-      if (!result.success) {
-        setError(result.error || 'Failed to load profile analytics');
-        return;
-      }
-
-      setAnalytics(result.analytics);
-    } catch {
-      setError('Failed to connect to server. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  }, [currentUser?.id]);
+    await loadAnalytics(currentUser.id);
+  }, [currentUser?.id, loadAnalytics]);
 
   useEffect(() => {
     loadProfileData();

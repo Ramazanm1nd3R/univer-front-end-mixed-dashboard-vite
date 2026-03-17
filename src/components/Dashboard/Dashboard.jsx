@@ -1,6 +1,7 @@
 import React, { Suspense, lazy, memo, useCallback, useMemo } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useDashboardData, useDashboardUI } from '../../context/DashboardContext';
+import { useFilter } from '../../hooks/useFilter';
 import Card from './Card';
 import '../../styles/Dashboard.css';
 import ServerError from '../shared/ServerError';
@@ -37,35 +38,7 @@ function Dashboard() {
     resetFilters,
   } = useDashboardUI();
 
-  const filteredItems = useMemo(() => {
-    let result = [...items];
-
-    if (filters.category !== 'all') {
-      result = result.filter((item) => item.category === filters.category);
-    }
-
-    if (filters.status !== 'all') {
-      result = result.filter((item) => item.status === filters.status);
-    }
-
-    if (filters.search) {
-      const query = filters.search.toLowerCase();
-      result = result.filter((item) => item.title.toLowerCase().includes(query));
-    }
-
-    const priorityWeight = { high: 3, medium: 2, low: 1 };
-
-    result.sort((a, b) => {
-      if (sortBy === 'date') return new Date(b.date) - new Date(a.date);
-      if (sortBy === 'title') return a.title.localeCompare(b.title);
-      if (sortBy === 'priority') {
-        return (priorityWeight[b.priority] || 0) - (priorityWeight[a.priority] || 0);
-      }
-      return 0;
-    });
-
-    return result;
-  }, [items, filters, sortBy]);
+  const filteredItems = useFilter(items, filters, sortBy);
 
   const stats = useMemo(() => {
     const totalTasks = items.length;
