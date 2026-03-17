@@ -9,4 +9,9 @@ export default defineConfig({
       'Layout': path.resolve(__dirname, 'src/components/Layout'),
     },
   },
+  test: {
+    environment: 'jsdom',
+    globals: true,
+    setupFiles: './src/setupTests.js',
+  },
 })

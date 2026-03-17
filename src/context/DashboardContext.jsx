@@ -9,6 +9,7 @@ import React, {
 } from 'react';
 import { useAuth } from './AuthContext.jsx';
 import api from '../services/api';
+import { useModal } from '../hooks/useModal';
 
 const DashboardDataContext = createContext(null);
 const DashboardUIContext = createContext(null);
@@ -47,8 +48,8 @@ export function DashboardProvider({ children }) {
 
   const [filters, setFilters] = useState({ category: 'all', status: 'all', search: '' });
   const [sortBy, setSortBy] = useState('date');
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const addModal = useModal(false);
+  const editModal = useModal(false);
   const [editingItem, setEditingItem] = useState(null);
 
   const [notifications, setNotifications] = useState([]);
@@ -204,18 +205,18 @@ export function DashboardProvider({ children }) {
     )));
   }, []);
 
-  const openAddModal = useCallback(() => setIsAddModalOpen(true), []);
-  const closeAddModal = useCallback(() => setIsAddModalOpen(false), []);
+  const openAddModal = useCallback(() => addModal.open(), [addModal]);
+  const closeAddModal = useCallback(() => addModal.close(), [addModal]);
 
   const openEditModal = useCallback((item) => {
     setEditingItem(item);
-    setIsEditModalOpen(true);
-  }, []);
+    editModal.open();
+  }, [editModal]);
 
   const closeEditModal = useCallback(() => {
-    setIsEditModalOpen(false);
+    editModal.close();
     setEditingItem(null);
-  }, []);
+  }, [editModal]);
 
   const resetFilters = useCallback(() => {
     setFilters({ category: 'all', status: 'all', search: '' });
@@ -236,8 +237,8 @@ export function DashboardProvider({ children }) {
   const uiValue = useMemo(() => ({
     filters,
     sortBy,
-    isAddModalOpen,
-    isEditModalOpen,
+    isAddModalOpen: addModal.isOpen,
+    isEditModalOpen: editModal.isOpen,
     editingItem,
     setFilters,
     setSortBy,
@@ -249,8 +250,8 @@ export function DashboardProvider({ children }) {
   }), [
     filters,
     sortBy,
-    isAddModalOpen,
-    isEditModalOpen,
+    addModal.isOpen,
+    editModal.isOpen,
     editingItem,
     openAddModal,
     closeAddModal,

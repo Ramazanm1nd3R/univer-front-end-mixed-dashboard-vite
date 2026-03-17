@@ -1,100 +1,66 @@
 import React, { memo, useCallback, useMemo, useState } from 'react';
 import '../../styles/Dashboard.css';
+import { useForm } from '../../hooks/useForm';
 
 const MAX_TITLE = 100;
 
 function AddItemModal({ onClose, onAdd }) {
-  const [formData, setFormData] = useState({
+  const initialValues = useMemo(() => ({
     title: '',
     category: 'other',
     priority: 'medium',
     status: 'active',
     dueDate: '',
     dueTime: '',
-  });
-  const [errors, setErrors] = useState({});
-  const [touched, setTouched] = useState({});
+  }), []);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const validateField = useCallback((name, value, nextFormData) => {
-    if (name === 'title') {
-      const title = value.trim();
-      if (!title) return 'Введите название задачи';
-      if (title.length > MAX_TITLE) return `Максимум ${MAX_TITLE} символов`;
-      return '';
-    }
-
-    if ((name === 'dueDate' || name === 'dueTime') && nextFormData.dueTime && !nextFormData.dueDate) {
-      return 'Укажите дату, если задано время';
-    }
-
-    return '';
-  }, []);
-
-  const validateAll = useCallback((data) => {
+  const validate = useCallback((data, touched = {}) => {
     const nextErrors = {};
-    const titleError = validateField('title', data.title, data);
-    if (titleError) nextErrors.title = titleError;
+    if (touched.title) {
+      const title = data.title.trim();
+      if (!title) {
+        nextErrors.title = 'Введите название задачи';
+      } else if (title.length > MAX_TITLE) {
+        nextErrors.title = `Максимум ${MAX_TITLE} символов`;
+      }
+    }
 
-    const dueDateError = validateField('dueDate', data.dueDate, data);
-    if (dueDateError) nextErrors.dueDate = dueDateError;
+    if ((touched.dueDate || touched.dueTime) && data.dueTime && !data.dueDate) {
+      nextErrors.dueDate = 'Укажите дату, если задано время';
+    }
 
     return nextErrors;
-  }, [validateField]);
-
-  const handleChange = useCallback((e) => {
-    const { name, value, type, checked } = e.target;
-    const nextValue = type === 'checkbox' ? checked : value;
-
-    setFormData((prev) => {
-      const nextFormData = { ...prev, [name]: nextValue };
-
-      if (touched[name]) {
-        setErrors((prevErrors) => ({
-          ...prevErrors,
-          [name]: validateField(name, nextValue, nextFormData),
-        }));
-      }
-
-      if (name === 'dueDate' || name === 'dueTime') {
-        const dueDateError = validateField('dueDate', nextFormData.dueDate, nextFormData);
-        setErrors((prevErrors) => ({ ...prevErrors, dueDate: dueDateError }));
-      }
-
-      return nextFormData;
-    });
-  }, [touched, validateField]);
-
-  const handleBlur = useCallback((e) => {
-    const { name, value } = e.target;
-    setTouched((prev) => ({ ...prev, [name]: true }));
-    setErrors((prev) => ({
-      ...prev,
-      [name]: validateField(name, value, formData),
-    }));
-  }, [formData, validateField]);
-
-  const setPriority = useCallback((priority) => {
-    setFormData((prev) => ({ ...prev, priority }));
   }, []);
 
-  const handleSubmit = useCallback(async (e) => {
-    e.preventDefault();
+  const {
+    values: formData,
+    errors,
+    handleChange,
+    handleBlur,
+    handleSubmit,
+    setValue,
+  } = useForm({
+    initialValues,
+    validate,
+  });
 
-    const nextErrors = validateAll(formData);
-    setTouched({ title: true, dueDate: true, dueTime: true });
-    setErrors(nextErrors);
+  const setPriority = useCallback((priority) => {
+    setValue('priority', priority);
+  }, [setValue]);
 
-    if (Object.keys(nextErrors).length > 0) return;
-
+  const submitForm = useCallback(async (values) => {
     setIsSubmitting(true);
-    const success = await onAdd(formData);
+    const success = await onAdd(values);
     setIsSubmitting(false);
 
     if (success) {
       onClose();
     }
-  }, [formData, onAdd, onClose, validateAll]);
+    return success;
+  }, [onAdd, onClose]);
+
+  const submitHandler = handleSubmit(submitForm);
 
   const priorityConfig = useMemo(() => ({
     low: { label: '🟢 Низкий' },
@@ -125,7 +91,7 @@ function AddItemModal({ onClose, onAdd }) {
         </div>
 
         <div className="modal-body">
-          <form onSubmit={handleSubmit} className="modal-form">
+          <form onSubmit={submitHandler} className="modal-form">
             <div className="form-group">
               <label htmlFor="add-title" className="form-label">
                 Название задачи <span className="required-mark">*</span>
@@ -239,7 +205,7 @@ function AddItemModal({ onClose, onAdd }) {
 
         <div className="modal-footer">
           <button type="button" className="btn-secondary" onClick={onClose} disabled={isSubmitting}>Отмена</button>
-          <button type="submit" className="btn-primary" onClick={handleSubmit} disabled={isSubmitting}>
+          <button type="submit" className="btn-primary" onClick={submitHandler} disabled={isSubmitting}>
             {isSubmitting ? 'Сохранение...' : '✨ Создать задачу'}
           </button>
         </div>
