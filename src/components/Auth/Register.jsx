@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import VerificationCode from './VerificationCode';
 import './Auth.css';
 
 function Register({ onSwitchToLogin }) {
   const { initiateRegister, pendingVerification } = useAuth();
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -14,6 +16,15 @@ function Register({ onSwitchToLogin }) {
   });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
+
+  const goToLogin = () => {
+    if (typeof onSwitchToLogin === 'function') {
+      onSwitchToLogin();
+      return;
+    }
+
+    navigate('/login');
+  };
 
   const validateForm = () => {
     const newErrors = {};
@@ -167,7 +178,7 @@ function Register({ onSwitchToLogin }) {
         <div className="auth-footer">
           <p>
             Уже есть аккаунт?{' '}
-            <button onClick={onSwitchToLogin} className="link-button">
+            <button type="button" onClick={goToLogin} className="link-button">
               Войти
             </button>
           </p>

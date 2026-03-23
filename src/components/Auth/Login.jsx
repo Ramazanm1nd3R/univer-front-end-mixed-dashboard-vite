@@ -1,16 +1,27 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import VerificationCode from './VerificationCode';
 import './Auth.css';
 
 function Login({ onSwitchToRegister }) {
   const { initiateLogin, pendingVerification } = useAuth();
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     email: '',
     password: ''
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  const goToRegister = () => {
+    if (typeof onSwitchToRegister === 'function') {
+      onSwitchToRegister();
+      return;
+    }
+
+    navigate('/register');
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -84,7 +95,7 @@ function Login({ onSwitchToRegister }) {
         <div className="auth-footer">
           <p>
             Нет аккаунта?{' '}
-            <button onClick={onSwitchToRegister} className="link-button">
+            <button type="button" onClick={goToRegister} className="link-button">
               Зарегистрироваться
             </button>
           </p>
