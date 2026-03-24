@@ -1,8 +1,8 @@
-import React, { Suspense, lazy, memo, useCallback, useMemo } from 'react';
+import React, { Suspense, lazy, memo, useMemo } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useDashboardData, useDashboardUI } from '../../context/DashboardContext';
-import { useFilter } from '../../hooks/useFilter';
 import Card from './Card';
+import TaskCollection from './TaskCollection';
 import '../../styles/Dashboard.css';
 import ServerError from '../shared/ServerError';
 
@@ -24,21 +24,14 @@ function Dashboard() {
   } = useDashboardData();
 
   const {
-    filters,
-    sortBy,
     isAddModalOpen,
     isEditModalOpen,
     editingItem,
-    setFilters,
-    setSortBy,
     openAddModal,
     closeAddModal,
     openEditModal,
     closeEditModal,
-    resetFilters,
   } = useDashboardUI();
-
-  const filteredItems = useFilter(items, filters, sortBy);
 
   const stats = useMemo(() => {
     const totalTasks = items.length;
@@ -72,36 +65,6 @@ function Dashboard() {
     };
   }, [items]);
 
-  const handleSearchChange = useCallback((e) => {
-    const search = e.target.value;
-    setFilters((prev) => ({ ...prev, search }));
-  }, [setFilters]);
-
-  const handleCategoryChange = useCallback((e) => {
-    const category = e.target.value;
-    setFilters((prev) => ({ ...prev, category }));
-  }, [setFilters]);
-
-  const handleStatusChange = useCallback((status) => {
-    setFilters((prev) => ({ ...prev, status }));
-  }, [setFilters]);
-
-  const handleSortChange = useCallback((e) => {
-    setSortBy(e.target.value);
-  }, [setSortBy]);
-
-  const handleShowActive = useCallback(() => {
-    setFilters((prev) => ({ ...prev, status: 'active' }));
-  }, [setFilters]);
-
-  const handleShowUrgent = useCallback(() => {
-    setFilters((prev) => ({ ...prev, status: 'all', category: 'all', search: '' }));
-  }, [setFilters]);
-
-  const handleShowWork = useCallback(() => {
-    setFilters((prev) => ({ ...prev, category: 'work' }));
-  }, [setFilters]);
-
   if (loading) {
     return (
       <div className="dashboard-container">
@@ -133,169 +96,220 @@ function Dashboard() {
 
   return (
     <div className="dashboard-container">
-      <div className="dashboard-hero">
-        <div className="hero-content">
-          <div className="hero-text">
-            <div className="hero-brand">
-              <h1 className="hero-title">
-                TaskFlow <span className="ai-badge-hero">AI</span>
-              </h1>
-              <p className="hero-tagline">Smart Task Management with AI Insights</p>
-            </div>
-            <div className="hero-stats-compact">
-              <div className="hero-stat">
-                <span className="hero-stat-value">{stats.totalTasks}</span>
-                <span className="hero-stat-label">Total Tasks</span>
+      <TaskCollection items={items}>
+        {({
+          items: filteredItems,
+          filters,
+          sortBy,
+          setFilters,
+          setSortBy,
+          resetFilters,
+          hasActiveFilters,
+          totalCount,
+          filteredCount,
+        }) => {
+          const handleSearchChange = (e) => {
+            setFilters((prev) => ({ ...prev, search: e.target.value }));
+          };
+
+          const handleCategoryChange = (e) => {
+            setFilters((prev) => ({ ...prev, category: e.target.value }));
+          };
+
+          const handleStatusChange = (status) => {
+            setFilters((prev) => ({ ...prev, status }));
+          };
+
+          const handleSortChange = (e) => {
+            setSortBy(e.target.value);
+          };
+
+          const handleShowActive = () => {
+            setFilters((prev) => ({ ...prev, status: 'active' }));
+          };
+
+          const handleShowUrgent = () => {
+            setFilters((prev) => ({ ...prev, status: 'all', category: 'all', search: '' }));
+            setSortBy('priority');
+          };
+
+          const handleShowWork = () => {
+            setFilters((prev) => ({ ...prev, category: 'work' }));
+          };
+
+          return (
+            <>
+              <div className="dashboard-hero">
+                <div className="hero-content">
+                  <div className="hero-text">
+                    <div className="hero-brand">
+                      <h1 className="hero-title">
+                        TaskFlow <span className="ai-badge-hero">AI</span>
+                      </h1>
+                      <p className="hero-tagline">Smart Task Management with AI Insights</p>
+                    </div>
+                    <div className="hero-stats-compact">
+                      <div className="hero-stat">
+                        <span className="hero-stat-value">{stats.totalTasks}</span>
+                        <span className="hero-stat-label">Total Tasks</span>
+                      </div>
+                      <div className="hero-stat">
+                        <span className="hero-stat-value">{stats.completionPct}%</span>
+                        <span className="hero-stat-label">Completion</span>
+                      </div>
+                      <div className="hero-stat">
+                        <span className="hero-stat-value">{stats.streak}</span>
+                        <span className="hero-stat-label">Day Streak</span>
+                      </div>
+                    </div>
+                  </div>
+                  <button className="cta-button" onClick={openAddModal}>
+                    <span className="cta-icon">✨</span>
+                    <span>Новая задача</span>
+                  </button>
+                </div>
+                <div className="quick-actions">
+                  <button className="quick-action-btn" onClick={handleShowActive}>⚡ Активные</button>
+                  <button className="quick-action-btn" onClick={handleShowUrgent}>🔥 Срочные</button>
+                  <button className="quick-action-btn" onClick={handleShowWork}>💼 Работа</button>
+                  {hasActiveFilters && (
+                    <button className="quick-action-btn reset" onClick={resetFilters}>
+                      ✕ Сбросить
+                    </button>
+                  )}
+                </div>
               </div>
-              <div className="hero-stat">
-                <span className="hero-stat-value">{stats.completionPct}%</span>
-                <span className="hero-stat-label">Completion</span>
+
+              <div className="stats-grid modern">
+                <div className="stat-card modern">
+                  <div className="stat-icon-box total">📋</div>
+                  <div className="stat-content">
+                    <div className="stat-label">Всего задач</div>
+                    <div className="stat-value">{items.length}</div>
+                    <div className="stat-sub">за всё время</div>
+                  </div>
+                </div>
+                <div className="stat-card modern">
+                  <div className="stat-icon-box active-icon">⚡</div>
+                  <div className="stat-content">
+                    <div className="stat-label">Активных</div>
+                    <div className="stat-value">{stats.activeCount}</div>
+                    <div className="stat-progress">
+                      <div
+                        className="stat-progress-bar active-bar"
+                        style={{ width: items.length ? `${(stats.activeCount / items.length) * 100}%` : '0%' }}
+                      />
+                    </div>
+                  </div>
+                </div>
+                <div className="stat-card modern">
+                  <div className="stat-icon-box completed-icon">✅</div>
+                  <div className="stat-content">
+                    <div className="stat-label">Завершено</div>
+                    <div className="stat-value">{stats.completedCount}</div>
+                    <div className="stat-progress">
+                      <div className="stat-progress-bar completed-bar" style={{ width: `${stats.completionPct}%` }} />
+                    </div>
+                  </div>
+                </div>
+                <div className="stat-card modern">
+                  <div className="stat-icon-box rate-icon">🎯</div>
+                  <div className="stat-content">
+                    <div className="stat-label">Продуктивность</div>
+                    <div className="stat-value">{stats.completionPct}%</div>
+                    <div className={`stat-sub ${stats.completionPct >= 70 ? 'positive' : stats.completionPct >= 40 ? 'neutral' : 'negative'}`}>
+                      {stats.completionPct >= 70 ? '↑ Отлично!' : stats.completionPct >= 40 ? '→ Хорошо' : '↓ Нужно больше'}
+                    </div>
+                  </div>
+                </div>
               </div>
-              <div className="hero-stat">
-                <span className="hero-stat-value">{stats.streak}</span>
-                <span className="hero-stat-label">Day Streak</span>
+
+              <div className="filters-compact">
+                <div className="filter-group">
+                  <label className="filter-label">🔍 Поиск</label>
+                  <input
+                    type="text"
+                    className="filter-input"
+                    placeholder="Найти задачу..."
+                    value={filters.search}
+                    onChange={handleSearchChange}
+                  />
+                </div>
+                <div className="filter-group">
+                  <label className="filter-label">📁 Категория</label>
+                  <select className="filter-select" value={filters.category} onChange={handleCategoryChange}>
+                    <option value="all">Все категории</option>
+                    <option value="work">💼 Работа</option>
+                    <option value="personal">👤 Личное</option>
+                    <option value="health">💪 Здоровье</option>
+                    <option value="other">📌 Другое</option>
+                  </select>
+                </div>
+                <div className="filter-group">
+                  <label className="filter-label">📊 Статус</label>
+                  <div className="filter-pills">
+                    {[['all', 'Все'], ['active', 'Активные'], ['completed', 'Готовые']].map(([val, label]) => (
+                      <button
+                        key={val}
+                        className={`pill ${filters.status === val ? 'active' : ''}`}
+                        onClick={() => handleStatusChange(val)}
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div className="filter-group">
+                  <label className="filter-label">🔀 Сортировка</label>
+                  <select className="filter-select" value={sortBy} onChange={handleSortChange}>
+                    <option value="date">По дате</option>
+                    <option value="title">По названию</option>
+                    <option value="priority">По приоритету</option>
+                  </select>
+                </div>
               </div>
-            </div>
-          </div>
-          <button className="cta-button" onClick={openAddModal}>
-            <span className="cta-icon">✨</span>
-            <span>Новая задача</span>
-          </button>
-        </div>
-        <div className="quick-actions">
-          <button className="quick-action-btn" onClick={handleShowActive}>⚡ Активные</button>
-          <button className="quick-action-btn" onClick={handleShowUrgent}>🔥 Срочные</button>
-          <button className="quick-action-btn" onClick={handleShowWork}>💼 Работа</button>
-          {(filters.status !== 'all' || filters.category !== 'all' || filters.search) && (
-            <button className="quick-action-btn reset" onClick={resetFilters}>
-              ✕ Сбросить
-            </button>
-          )}
-        </div>
-      </div>
 
-      <div className="stats-grid modern">
-        <div className="stat-card modern">
-          <div className="stat-icon-box total">📋</div>
-          <div className="stat-content">
-            <div className="stat-label">Всего задач</div>
-            <div className="stat-value">{items.length}</div>
-            <div className="stat-sub">за всё время</div>
-          </div>
-        </div>
-        <div className="stat-card modern">
-          <div className="stat-icon-box active-icon">⚡</div>
-          <div className="stat-content">
-            <div className="stat-label">Активных</div>
-            <div className="stat-value">{stats.activeCount}</div>
-            <div className="stat-progress">
-              <div
-                className="stat-progress-bar active-bar"
-                style={{ width: items.length ? `${(stats.activeCount / items.length) * 100}%` : '0%' }}
-              />
-            </div>
-          </div>
-        </div>
-        <div className="stat-card modern">
-          <div className="stat-icon-box completed-icon">✅</div>
-          <div className="stat-content">
-            <div className="stat-label">Завершено</div>
-            <div className="stat-value">{stats.completedCount}</div>
-            <div className="stat-progress">
-              <div className="stat-progress-bar completed-bar" style={{ width: `${stats.completionPct}%` }} />
-            </div>
-          </div>
-        </div>
-        <div className="stat-card modern">
-          <div className="stat-icon-box rate-icon">🎯</div>
-          <div className="stat-content">
-            <div className="stat-label">Продуктивность</div>
-            <div className="stat-value">{stats.completionPct}%</div>
-            <div className={`stat-sub ${stats.completionPct >= 70 ? 'positive' : stats.completionPct >= 40 ? 'neutral' : 'negative'}`}>
-              {stats.completionPct >= 70 ? '↑ Отлично!' : stats.completionPct >= 40 ? '→ Хорошо' : '↓ Нужно больше'}
-            </div>
-          </div>
-        </div>
-      </div>
+              <div className="cards-count-row">
+                <span className="cards-count">
+                  {filteredCount === totalCount
+                    ? `${totalCount} задач`
+                    : `${filteredCount} из ${totalCount}`}
+                </span>
+              </div>
 
-      <div className="filters-compact">
-        <div className="filter-group">
-          <label className="filter-label">🔍 Поиск</label>
-          <input
-            type="text"
-            className="filter-input"
-            placeholder="Найти задачу..."
-            value={filters.search}
-            onChange={handleSearchChange}
-          />
-        </div>
-        <div className="filter-group">
-          <label className="filter-label">📁 Категория</label>
-          <select className="filter-select" value={filters.category} onChange={handleCategoryChange}>
-            <option value="all">Все категории</option>
-            <option value="work">💼 Работа</option>
-            <option value="personal">👤 Личное</option>
-            <option value="health">💪 Здоровье</option>
-            <option value="other">📌 Другое</option>
-          </select>
-        </div>
-        <div className="filter-group">
-          <label className="filter-label">📊 Статус</label>
-          <div className="filter-pills">
-            {[['all', 'Все'], ['active', 'Активные'], ['completed', 'Готовые']].map(([val, label]) => (
-              <button
-                key={val}
-                className={`pill ${filters.status === val ? 'active' : ''}`}
-                onClick={() => handleStatusChange(val)}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-        </div>
-        <div className="filter-group">
-          <label className="filter-label">🔀 Сортировка</label>
-          <select className="filter-select" value={sortBy} onChange={handleSortChange}>
-            <option value="date">По дате</option>
-            <option value="title">По названию</option>
-            <option value="priority">По приоритету</option>
-          </select>
-        </div>
-      </div>
-
-      <div className="cards-count-row">
-        <span className="cards-count">
-          {filteredItems.length === items.length
-            ? `${items.length} задач`
-            : `${filteredItems.length} из ${items.length}`}
-        </span>
-      </div>
-
-      <div className="cards-grid">
-        {filteredItems.length === 0 ? (
-          <div className="empty-state modern">
-            <div className="empty-icon">📭</div>
-            <h3>Задачи не найдены</h3>
-            <p>{items.length === 0 ? 'Создайте первую задачу!' : 'Попробуйте изменить фильтры'}</p>
-            {items.length === 0 && (
-              <button className="cta-button" style={{ marginTop: '1rem' }} onClick={openAddModal}>
-                ✨ Создать задачу
-              </button>
-            )}
-          </div>
-        ) : (
-          filteredItems.map((item) => (
-            <Card
-              key={item.id}
-              item={item}
-              onDelete={deleteItem}
-              onToggleStatus={toggleStatus}
-              onToggleLike={toggleLike}
-              onEdit={openEditModal}
-            />
-          ))
-        )}
-      </div>
+              <div className="cards-grid">
+                {filteredItems.length === 0 ? (
+                  <div className="empty-state modern">
+                    <div className="empty-icon">📭</div>
+                    <h3>Задачи не найдены</h3>
+                    <p>{items.length === 0 ? 'Создайте первую задачу!' : 'Попробуйте изменить фильтры'}</p>
+                    {items.length === 0 && (
+                      <button className="cta-button" style={{ marginTop: '1rem' }} onClick={openAddModal}>
+                        ✨ Создать задачу
+                      </button>
+                    )}
+                  </div>
+                ) : (
+                  filteredItems.map((item) => (
+                    <Card
+                      key={item.id}
+                      item={item}
+                      onDelete={deleteItem}
+                      onToggleStatus={toggleStatus}
+                      onToggleLike={toggleLike}
+                      onEdit={openEditModal}
+                    >
+                      <Card.Header />
+                      <Card.Body />
+                      <Card.Footer />
+                    </Card>
+                  ))
+                )}
+              </div>
+            </>
+          );
+        }}
+      </TaskCollection>
 
       <Suspense fallback={null}>
         {isAddModalOpen && <AddItemModal onClose={closeAddModal} onAdd={addItem} />}

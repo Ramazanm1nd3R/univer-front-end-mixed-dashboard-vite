@@ -1,3 +1,4 @@
+/* eslint-env vitest */
 import { act, renderHook, waitFor } from '@testing-library/react';
 import { useFetch } from '../useFetch';
 

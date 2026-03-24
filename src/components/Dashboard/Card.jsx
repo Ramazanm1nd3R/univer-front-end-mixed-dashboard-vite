@@ -1,17 +1,17 @@
-import React, { memo } from 'react';
+import React, {
+  Suspense,
+  lazy,
+  memo,
+  useCallback,
+  useMemo,
+  useState,
+} from 'react';
+import { TaskCardContext } from './card-parts/taskCardContext.jsx';
 
-const CATEGORY_CONFIG = {
-  work:     { emoji: '💼', label: 'Работа' },
-  personal: { emoji: '👤', label: 'Личное' },
-  health:   { emoji: '💪', label: 'Здоровье' },
-  other:    { emoji: '📌', label: 'Другое' },
-};
-
-const PRIORITY_LABELS = {
-  high:   '🔴 Высокий',
-  medium: '🟡 Средний',
-  low:    '🟢 Низкий',
-};
+const TaskCardHeader = lazy(() => import('./card-parts/TaskCardHeader.jsx'));
+const TaskCardBody = lazy(() => import('./card-parts/TaskCardBody.jsx'));
+const TaskCardFooter = lazy(() => import('./card-parts/TaskCardFooter.jsx'));
+const TaskCardDetailsModal = lazy(() => import('./card-parts/TaskCardDetailsModal.jsx'));
 
 function formatDueDate(dueDate) {
   if (!dueDate) return null;
@@ -23,84 +23,95 @@ function formatDueDate(dueDate) {
   });
 }
 
-function Card({ item, onDelete, onToggleStatus, onToggleLike, onEdit }) {
-  const cat = CATEGORY_CONFIG[item.category] || CATEGORY_CONFIG.other;
+function CompoundTaskCard({ item, onDelete, onToggleStatus, onToggleLike, onEdit, children }) {
   const isCompleted = item.status === 'completed';
-
-  // Определяем просрочку
   const dueDate = item.dueDate ? new Date(item.dueDate) : null;
   const isOverdue = dueDate && !isCompleted && dueDate < new Date();
   const formattedDue = formatDueDate(item.dueDate);
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
 
   const cardDate = item.date
     ? new Date(item.date).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: '2-digit' })
     : '—';
 
+  const openDetails = useCallback(() => setIsDetailsOpen(true), []);
+  const closeDetails = useCallback(() => setIsDetailsOpen(false), []);
+
+  const handleDelete = useCallback(() => onDelete(item.id), [item.id, onDelete]);
+  const handleToggleStatus = useCallback(() => onToggleStatus(item.id), [item.id, onToggleStatus]);
+  const handleLike = useCallback(() => onToggleLike(item.id), [item.id, onToggleLike]);
+  const handleEdit = useCallback(() => {
+    closeDetails();
+    onEdit(item);
+  }, [closeDetails, item, onEdit]);
+
+  const contextValue = useMemo(() => ({
+    item,
+    isCompleted,
+    isOverdue,
+    formattedDue,
+    cardDate,
+    isDetailsOpen,
+    openDetails,
+    closeDetails,
+    handleDelete,
+    handleToggleStatus,
+    handleLike,
+    handleEdit,
+  }), [
+    item,
+    isCompleted,
+    isOverdue,
+    formattedDue,
+    cardDate,
+    isDetailsOpen,
+    openDetails,
+    closeDetails,
+    handleDelete,
+    handleToggleStatus,
+    handleLike,
+    handleEdit,
+  ]);
+
+  const content = children || (
+    <>
+      <CompoundTaskCard.Header />
+      <CompoundTaskCard.Body />
+      <CompoundTaskCard.Footer />
+    </>
+  );
+
   return (
-    <div className={`card${isCompleted ? ' completed' : ''}${isOverdue ? ' overdue' : ''}`}>
-      {/* Шапка */}
-      <div className="card-header">
-        <span className="card-category">
-          <span className="category-emoji">{cat.emoji}</span>
-          <span className="category-name">{cat.label}</span>
-        </span>
-        <span className={`priority-badge priority-${item.priority || 'medium'}`}>
-          {PRIORITY_LABELS[item.priority] || PRIORITY_LABELS.medium}
-        </span>
+    <TaskCardContext.Provider value={contextValue}>
+      <div className={`card${isCompleted ? ' completed' : ''}${isOverdue ? ' overdue' : ''}`}>
+        <Suspense fallback={null}>
+          {content}
+        </Suspense>
       </div>
 
-      {/* Заголовок */}
-      <div className="card-title">{item.title}</div>
-
-      {/* Описание (если отличается от заголовка) */}
-      {item.description && item.description !== item.title && (
-        <div className="card-description">{item.description}</div>
-      )}
-
-      {/* Срок выполнения */}
-      {formattedDue && (
-        <div className={`card-due-date${isOverdue ? ' overdue-text' : ''}`}>
-          <span className="due-icon">{isOverdue ? '⚠️' : '📅'}</span>
-          <span>{formattedDue}</span>
-          {isOverdue && <span className="overdue-badge">Просрочено</span>}
-        </div>
-      )}
-
-      {/* Footer */}
-      <div className="card-footer">
-        <div className="card-meta">
-          <span className="card-date">📅 {cardDate}</span>
-          <button className="like-button" onClick={() => onToggleLike(item.id)}>
-            ❤️ {item.likes || 0}
-          </button>
-        </div>
-
-        <div className="card-actions">
-          <button
-            className={`status-button${isCompleted ? ' completed-status' : ''}`}
-            onClick={() => onToggleStatus(item.id)}
-            title={isCompleted ? 'Сделать активным' : 'Завершить'}
-          >
-            {isCompleted ? '↩️' : '✓'}
-          </button>
-          <button
-            className="edit-button"
-            onClick={() => onEdit(item)}
-            title="Редактировать"
-          >
-            ✏️
-          </button>
-          <button
-            className="delete-button"
-            onClick={() => onDelete(item.id)}
-            title="Удалить"
-          >
-            🗑️
-          </button>
-        </div>
-      </div>
-    </div>
+      <Suspense fallback={null}>
+        {isDetailsOpen && <TaskCardDetailsModal />}
+      </Suspense>
+    </TaskCardContext.Provider>
   );
 }
 
-export default memo(Card);
+CompoundTaskCard.Header = function TaskCardHeaderSlot() {
+  return <TaskCardHeader />;
+};
+
+CompoundTaskCard.Body = function TaskCardBodySlot() {
+  return <TaskCardBody />;
+};
+
+CompoundTaskCard.Footer = function TaskCardFooterSlot() {
+  return <TaskCardFooter />;
+};
+
+const MemoizedCompoundTaskCard = memo(CompoundTaskCard);
+
+MemoizedCompoundTaskCard.Header = CompoundTaskCard.Header;
+MemoizedCompoundTaskCard.Body = CompoundTaskCard.Body;
+MemoizedCompoundTaskCard.Footer = CompoundTaskCard.Footer;
+
+export default MemoizedCompoundTaskCard;

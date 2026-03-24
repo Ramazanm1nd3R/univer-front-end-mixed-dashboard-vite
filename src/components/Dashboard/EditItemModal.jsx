@@ -1,8 +1,14 @@
-import React, { memo, useCallback, useMemo, useState } from 'react';
+import React, { memo, useCallback, useMemo, useRef, useState } from 'react';
 import '../../styles/Dashboard.css';
 import { useForm } from '../../hooks/useForm';
-
-const MAX_TITLE = 100;
+import {
+  MAX_TITLE,
+  buildTaskPayload,
+  categoryOptions,
+  priorityConfig,
+  validateControlledTaskFields,
+  validateScheduleFields,
+} from './taskFormConfig';
 
 function getInitialState(item) {
   return {
@@ -10,6 +16,11 @@ function getInitialState(item) {
     category: item?.category || 'other',
     priority: item?.priority || 'medium',
     status: item?.status || 'active',
+  };
+}
+
+function getInitialSchedule(item) {
+  return {
     dueDate: item?.dueDate ? item.dueDate.split('T')[0] : '',
     dueTime: item?.dueDate ? item.dueDate.split('T')[1]?.slice(0, 5) || '' : '',
   };
@@ -17,71 +28,106 @@ function getInitialState(item) {
 
 function EditItemModal({ item, onClose, onUpdate }) {
   const initialValues = useMemo(() => getInitialState(item), [item]);
+  const initialSchedule = useMemo(() => getInitialSchedule(item), [item]);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const validate = useCallback((data, touched = {}) => {
-    const nextErrors = {};
-    if (touched.title) {
-      const title = data.title.trim();
-      if (!title) {
-        nextErrors.title = 'Введите название задачи';
-      } else if (title.length > MAX_TITLE) {
-        nextErrors.title = `Максимум ${MAX_TITLE} символов`;
-      }
-    }
-
-    if ((touched.dueDate || touched.dueTime) && data.dueTime && !data.dueDate) {
-      nextErrors.dueDate = 'Укажите дату, если задано время';
-    }
-
-    return nextErrors;
-  }, []);
+  const [scheduleState, setScheduleState] = useState(initialSchedule);
+  const [scheduleErrors, setScheduleErrors] = useState({});
+  const [scheduleTouched, setScheduleTouched] = useState({});
+  const dueDateRef = useRef(null);
+  const dueTimeRef = useRef(null);
 
   const {
     values: formData,
     errors,
     handleChange,
     handleBlur,
-    handleSubmit,
     setValue,
+    setErrors,
+    setTouched,
+    reset,
   } = useForm({
     initialValues,
-    validate,
+    validate: validateControlledTaskFields,
   });
 
   const setPriority = useCallback((priority) => {
     setValue('priority', priority);
   }, [setValue]);
 
-  const submitForm = useCallback(async (values) => {
+  const readScheduleFields = useCallback(() => ({
+    dueDate: dueDateRef.current?.value || '',
+    dueTime: dueTimeRef.current?.value || '',
+  }), []);
+
+  const syncScheduleState = useCallback((nextTouched = scheduleTouched) => {
+    const nextSchedule = readScheduleFields();
+    setScheduleState(nextSchedule);
+    setScheduleErrors(validateScheduleFields(nextSchedule, nextTouched));
+    return nextSchedule;
+  }, [readScheduleFields, scheduleTouched]);
+
+  const handleScheduleChange = useCallback(() => {
+    syncScheduleState();
+  }, [syncScheduleState]);
+
+  const handleScheduleBlur = useCallback((field) => {
+    setScheduleTouched((prev) => {
+      const nextTouched = { ...prev, [field]: true };
+      syncScheduleState(nextTouched);
+      return nextTouched;
+    });
+  }, [syncScheduleState]);
+
+  const resetHybridForm = useCallback(() => {
+    reset(initialValues);
+    setScheduleTouched({});
+    setScheduleErrors({});
+    setScheduleState(initialSchedule);
+
+    if (dueDateRef.current) {
+      dueDateRef.current.value = initialSchedule.dueDate;
+    }
+
+    if (dueTimeRef.current) {
+      dueTimeRef.current.value = initialSchedule.dueTime;
+    }
+  }, [initialSchedule, initialValues, reset]);
+
+  const submitForm = useCallback(async () => {
+    const submitTouched = Object.keys(initialValues).reduce((acc, key) => {
+      acc[key] = true;
+      return acc;
+    }, {});
+    const nextControlledErrors = validateControlledTaskFields(formData, submitTouched);
+    const submitScheduleTouched = { dueDate: true, dueTime: true };
+    const nextSchedule = readScheduleFields();
+    const nextScheduleErrors = validateScheduleFields(nextSchedule, submitScheduleTouched);
+
+    setTouched(submitTouched);
+    setErrors(nextControlledErrors);
+    setScheduleTouched(submitScheduleTouched);
+    setScheduleState(nextSchedule);
+    setScheduleErrors(nextScheduleErrors);
+
+    if (Object.keys(nextControlledErrors).length > 0 || Object.keys(nextScheduleErrors).length > 0) {
+      return false;
+    }
+
     setIsSubmitting(true);
-    const success = await onUpdate({ ...item, ...values });
+    const success = await onUpdate({ ...item, ...buildTaskPayload(formData, nextSchedule) });
     setIsSubmitting(false);
 
     if (success) {
       onClose();
     }
+
     return success;
-  }, [item, onClose, onUpdate]);
-
-  const submitHandler = handleSubmit(submitForm);
-
-  const priorityConfig = useMemo(() => ({
-    low: { label: '🟢 Низкий' },
-    medium: { label: '🟡 Средний' },
-    high: { label: '🔴 Высокий' },
-  }), []);
-
-  const categoryOptions = useMemo(() => ([
-    { value: 'work', label: '💼 Работа' },
-    { value: 'personal', label: '👤 Личное' },
-    { value: 'health', label: '💪 Здоровье' },
-    { value: 'other', label: '📌 Другое' },
-  ]), []);
+  }, [formData, initialValues, item, onClose, onUpdate, readScheduleFields, setErrors, setTouched]);
 
   const categoryLabel = categoryOptions.find((c) => c.value === formData.category)?.label || '📌 Другое';
   const titleLen = formData.title.length;
   const titleNear = titleLen > MAX_TITLE * 0.8;
+  const mergedErrors = { ...errors, ...scheduleErrors };
 
   return (
     <div className="modal-overlay" onClick={onClose}>
@@ -95,7 +141,13 @@ function EditItemModal({ item, onClose, onUpdate }) {
         </div>
 
         <div className="modal-body">
-          <form onSubmit={submitHandler} className="modal-form">
+          <form
+            onSubmit={(event) => {
+              event.preventDefault();
+              submitForm();
+            }}
+            className="modal-form"
+          >
             <div className="form-group">
               <label htmlFor="edit-title" className="form-label">
                 Название задачи <span className="required-mark">*</span>
@@ -162,23 +214,23 @@ function EditItemModal({ item, onClose, onUpdate }) {
                 <input
                   type="date"
                   id="edit-dueDate"
-                  name="dueDate"
-                  value={formData.dueDate}
-                  onChange={handleChange}
-                  onBlur={handleBlur}
-                  className={`form-input ${errors.dueDate ? 'input-error' : ''}`}
+                  ref={dueDateRef}
+                  defaultValue={initialSchedule.dueDate}
+                  onChange={handleScheduleChange}
+                  onBlur={() => handleScheduleBlur('dueDate')}
+                  className={`form-input ${mergedErrors.dueDate ? 'input-error' : ''}`}
                 />
-                {errors.dueDate && <span className="form-error">⚠ {errors.dueDate}</span>}
+                {mergedErrors.dueDate && <span className="form-error">⚠ {mergedErrors.dueDate}</span>}
               </div>
               <div className="form-group">
                 <label htmlFor="edit-dueTime" className="form-label">⏰ Срок — время</label>
                 <input
                   type="time"
                   id="edit-dueTime"
-                  name="dueTime"
-                  value={formData.dueTime}
-                  onChange={handleChange}
-                  onBlur={handleBlur}
+                  ref={dueTimeRef}
+                  defaultValue={initialSchedule.dueTime}
+                  onChange={handleScheduleChange}
+                  onBlur={() => handleScheduleBlur('dueTime')}
                   className="form-input"
                 />
               </div>
@@ -196,9 +248,9 @@ function EditItemModal({ item, onClose, onUpdate }) {
                     {formData.status === 'completed' && <span className="preview-status-badge">✅ Завершена</span>}
                   </div>
                   <div className="preview-card-title">{formData.title}</div>
-                  {(formData.dueDate || formData.dueTime) && (
+                  {(scheduleState.dueDate || scheduleState.dueTime) && (
                     <div className="preview-card-due">
-                      📅 {formData.dueDate}{formData.dueTime ? ` · ⏰ ${formData.dueTime}` : ''}
+                      📅 {scheduleState.dueDate}{scheduleState.dueTime ? ` · ⏰ ${scheduleState.dueTime}` : ''}
                     </div>
                   )}
                 </div>
@@ -208,8 +260,9 @@ function EditItemModal({ item, onClose, onUpdate }) {
         </div>
 
         <div className="modal-footer">
+          <button type="button" className="btn-secondary" onClick={resetHybridForm} disabled={isSubmitting}>Сбросить</button>
           <button type="button" className="btn-secondary" onClick={onClose} disabled={isSubmitting}>Отмена</button>
-          <button type="submit" className="btn-primary btn-edit" onClick={submitHandler} disabled={isSubmitting}>
+          <button type="button" className="btn-primary btn-edit" onClick={submitForm} disabled={isSubmitting}>
             {isSubmitting ? 'Сохранение...' : '✔ Сохранить изменения'}
           </button>
         </div>

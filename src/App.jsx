@@ -11,6 +11,7 @@ import {
 
 import { AuthProvider, useAuth } from './context/AuthContext.jsx';
 import { DashboardProvider } from './context/DashboardContext.jsx';
+import withAuth from './components/Auth/withAuth.jsx';
 
 import Header from 'Layout/Header.jsx';
 
@@ -24,6 +25,12 @@ const NotFoundPage = lazy(() => import('./components/Pages/NotFoundPage.jsx'));
 const Login = lazy(() => import('./components/Auth/Login.jsx'));
 const Register = lazy(() => import('./components/Auth/Register.jsx'));
 const Notifications = lazy(() => import('./components/Pages/Notifications.jsx'));
+const ProtectedDataPage = withAuth(DataPage, {
+  fallbackMessage: 'Страница аналитики доступна только после авторизации.',
+});
+const ProtectedProfilePage = withAuth(ProfilePage, {
+  fallbackMessage: 'Страница профиля доступна только после авторизации.',
+});
 
 function RouteLoading() {
   return <div style={{ padding: '2rem', textAlign: 'center' }}>Загрузка...</div>;
@@ -89,9 +96,10 @@ function AppContent({ isDarkTheme, toggleTheme }) {
               <Route path="/" element={<Dashboard />} />
               <Route path="/dashboard" element={<Navigate to="/" replace />} />
               <Route path="/tools" element={<ToolsPage />} />
-              <Route path="/data" element={<DataPage />} />
-              <Route path="/profile" element={<ProfilePage />} />
             </Route>
+
+            <Route path="/data" element={<ProtectedDataPage />} />
+            <Route path="/profile" element={<ProtectedProfilePage />} />
 
             <Route path="*" element={<NotFoundPage />} />
           </Routes>

@@ -1,3 +1,4 @@
+/* eslint-env vitest */
 import { renderHook } from '@testing-library/react';
 import { useFilter } from '../useFilter';
 

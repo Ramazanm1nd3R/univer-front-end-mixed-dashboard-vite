@@ -643,10 +643,30 @@
   width: 60px;
 }
 
+.card-body-button {
+  width: 100%;
+  padding: 0;
+  border: none;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.card-body-button:hover .card-title {
+  color: var(--accent-primary);
+}
+
 .card-description {
   color: var(--text-secondary);
   line-height: 1.6;
   margin-bottom: 0.95rem;
+}
+
+.card-hint {
+  margin-top: 0.85rem;
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  font-weight: 600;
 }
 
 .card-due-date {
@@ -714,6 +734,7 @@
 }
 
 .status-button,
+.details-button,
 .edit-button,
 .delete-button {
   width: 40px;
@@ -732,6 +753,7 @@
 }
 
 .status-button:hover,
+.details-button:hover,
 .edit-button:hover,
 .delete-button:hover {
   background: var(--gradient-primary);
