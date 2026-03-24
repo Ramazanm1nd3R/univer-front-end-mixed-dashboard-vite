@@ -11,6 +11,20 @@ def get_db_connection():
     conn.row_factory = sqlite3.Row
     return conn
 
+def parse_iso_datetime(value):
+    if not value:
+        return None
+    try:
+        return datetime.fromisoformat(value.replace('Z', '+00:00'))
+    except Exception:
+        return None
+
+def infer_due_from_created_at(created_at):
+    dt = parse_iso_datetime(created_at)
+    if not dt:
+        return None, None
+    return dt.strftime('%Y-%m-%d'), dt.strftime('%H:%M')
+
 def init_database():
     """Инициализация базы данных с таблицами"""
     conn = get_db_connection()
@@ -42,6 +56,7 @@ def init_database():
         category TEXT,
         due_date TEXT,
         due_time TEXT,
+        due_source TEXT,
         created_at TEXT NOT NULL,
         updated_at TEXT NOT NULL,
         FOREIGN KEY (user_id) REFERENCES users (id)
@@ -59,6 +74,39 @@ def init_database():
     if 'due_time' not in columns:
         cursor.execute('ALTER TABLE dashboard_items ADD COLUMN due_time TEXT')
         print('✅ Добавлена колонка due_time')
+
+    if 'due_source' not in columns:
+        cursor.execute('ALTER TABLE dashboard_items ADD COLUMN due_source TEXT')
+        print('✅ Добавлена колонка due_source')
+
+    cursor.execute("""
+    UPDATE dashboard_items
+    SET due_source = 'manual'
+    WHERE due_source IS NULL
+      AND due_date IS NOT NULL
+      AND TRIM(due_date) <> ''
+    """)
+
+    cursor.execute("""
+    SELECT id, created_at
+    FROM dashboard_items
+    WHERE (due_source IS NULL OR TRIM(due_source) = '')
+      AND (due_date IS NULL OR TRIM(due_date) = '')
+    """)
+    legacy_rows = cursor.fetchall()
+
+    for row in legacy_rows:
+        inferred_due_date, inferred_due_time = infer_due_from_created_at(row['created_at'])
+        if not inferred_due_date:
+            continue
+        cursor.execute("""
+        UPDATE dashboard_items
+        SET due_date = ?, due_time = ?, due_source = 'inferred_created_at'
+        WHERE id = ?
+        """, (inferred_due_date, inferred_due_time, row['id']))
+
+    if legacy_rows:
+        print(f'✅ Восстановлены сроки для {len(legacy_rows)} legacy-задач')
     
     # Таблица активности пользователей
     cursor.execute('''
@@ -131,6 +179,7 @@ def init_database():
                 'category': 'Обучение',
                 'due_date': '2025-01-20',
                 'due_time': '15:00',
+                'due_source': 'manual',
                 'created_at': '2025-01-15T10:00:00Z',
                 'updated_at': '2025-01-20T15:00:00Z'
             },
@@ -143,6 +192,7 @@ def init_database():
                 'category': 'Работа',
                 'due_date': '2025-01-22',
                 'due_time': '14:00',
+                'due_source': 'manual',
                 'created_at': '2025-01-18T09:00:00Z',
                 'updated_at': '2025-01-22T14:00:00Z'
             },
@@ -155,6 +205,7 @@ def init_database():
                 'category': 'Дизайн',
                 'due_date': '2025-02-15',
                 'due_time': '16:00',
+                'due_source': 'manual',
                 'created_at': '2025-02-01T11:00:00Z',
                 'updated_at': '2025-02-05T16:00:00Z'
             },
@@ -167,6 +218,7 @@ def init_database():
                 'category': 'Документация',
                 'due_date': '2025-02-20',
                 'due_time': '10:00',
+                'due_source': 'manual',
                 'created_at': '2025-02-03T13:00:00Z',
                 'updated_at': '2025-02-08T10:00:00Z'
             },
@@ -179,6 +231,7 @@ def init_database():
                 'category': 'Разработка',
                 'due_date': '2025-02-18',
                 'due_time': '12:00',
+                'due_source': 'manual',
                 'created_at': '2025-02-09T08:00:00Z',
                 'updated_at': '2025-02-10T12:00:00Z'
             }
@@ -186,8 +239,8 @@ def init_database():
         
         for task in demo_tasks:
             cursor.execute('''
-            INSERT INTO dashboard_items (id, user_id, text, status, priority, category, due_date, due_time, created_at, updated_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO dashboard_items (id, user_id, text, status, priority, category, due_date, due_time, due_source, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ''', (
                 task['id'],
                 task['user_id'],
@@ -197,6 +250,7 @@ def init_database():
                 task['category'],
                 task['due_date'],
                 task['due_time'],
+                task['due_source'],
                 task['created_at'],
                 task['updated_at']
             ))

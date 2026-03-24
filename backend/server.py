@@ -23,6 +23,33 @@ EMAIL_PASSWORD = os.getenv('EMAIL_PASSWORD', 'zvol jphz mdvn ndna')
 init_database()
 
 
+def parse_iso_datetime(value):
+    if not value:
+        return None
+    try:
+        return datetime.fromisoformat(value.replace('Z', '+00:00'))
+    except Exception:
+        return None
+
+
+def normalize_due_fields(data, fallback_created_at=None):
+    raw_due_date = data.get('dueDate') or data.get('due_date') or data.get('date')
+    raw_due_time = data.get('dueTime') or data.get('due_time')
+
+    due_date = raw_due_date.strip() if isinstance(raw_due_date, str) and raw_due_date.strip() else None
+    due_time = raw_due_time.strip() if isinstance(raw_due_time, str) and raw_due_time.strip() else None
+
+    if due_date:
+        return due_date, due_time, 'manual'
+
+    if fallback_created_at:
+        created_dt = parse_iso_datetime(fallback_created_at)
+        if created_dt:
+            return created_dt.strftime('%Y-%m-%d'), created_dt.strftime('%H:%M'), 'inferred_created_at'
+
+    return None, None, 'unscheduled'
+
+
 def send_email_results(user_email, code, verification_type):
     """Отправка кода верификации на email"""
     try:
@@ -313,7 +340,7 @@ def get_dashboard_items(user_id):
         cursor = conn.cursor()
         
         cursor.execute('''
-        SELECT id, text, status, priority, category, created_at, updated_at
+        SELECT id, text, status, priority, category, due_date, due_time, due_source, created_at, updated_at
         FROM dashboard_items WHERE user_id = ?
         ORDER BY created_at DESC
         ''', (user_id,))
@@ -326,6 +353,9 @@ def get_dashboard_items(user_id):
                 'status': row['status'],
                 'priority': row['priority'],
                 'category': row['category'],
+                'dueDate': row['due_date'],
+                'dueTime': row['due_time'],
+                'dueSource': row['due_source'],
                 'createdAt': row['created_at'],
                 'updatedAt': row['updated_at']
             })
@@ -349,10 +379,11 @@ def create_dashboard_item(user_id):
         
         item_id = f"item-{datetime.now().timestamp()}"
         now = datetime.now().isoformat()
+        due_date, due_time, due_source = normalize_due_fields(data, fallback_created_at=now)
         
         cursor.execute('''
-        INSERT INTO dashboard_items (id, user_id, text, status, priority, category, created_at, updated_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO dashboard_items (id, user_id, text, status, priority, category, due_date, due_time, due_source, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ''', (
             item_id,
             user_id,
@@ -360,6 +391,9 @@ def create_dashboard_item(user_id):
             data.get('status', 'active'),
             data.get('priority'),
             data.get('category'),
+            due_date,
+            due_time,
+            due_source,
             now,
             now
         ))
@@ -382,16 +416,20 @@ def update_dashboard_item(user_id, item_id):
         data = request.json
         conn = get_db_connection()
         cursor = conn.cursor()
+        due_date, due_time, due_source = normalize_due_fields(data)
         
         cursor.execute('''
         UPDATE dashboard_items
-        SET text = ?, status = ?, priority = ?, category = ?, updated_at = ?
+        SET text = ?, status = ?, priority = ?, category = ?, due_date = ?, due_time = ?, due_source = ?, updated_at = ?
         WHERE id = ? AND user_id = ?
         ''', (
             data['text'],
             data['status'],
             data.get('priority'),
             data.get('category'),
+            due_date,
+            due_time,
+            due_source,
             datetime.now().isoformat(),
             item_id,
             user_id
@@ -475,7 +513,7 @@ def get_dashboard_analytics(user_id):
         cursor = conn.cursor()
 
         cursor.execute('''
-        SELECT id, text, status, priority, category, created_at, updated_at
+        SELECT id, text, status, priority, category, due_date, due_time, due_source, created_at, updated_at
         FROM dashboard_items WHERE user_id = ?
         ORDER BY created_at DESC
         ''', (user_id,))
@@ -489,6 +527,9 @@ def get_dashboard_analytics(user_id):
             'status': r['status'],
             'priority': r['priority'],
             'category': r['category'],
+            'dueDate': r['due_date'],
+            'dueTime': r['due_time'],
+            'dueSource': r['due_source'],
             'createdAt': r['created_at'],
             'updatedAt': r['updated_at']
         } for r in rows]
@@ -517,75 +558,120 @@ def get_dashboard_analytics(user_id):
             'low':    len([i for i in items if i['priority'] == 'low'])
         }
 
-        # --- Last 30 days trend ---
+        day_names = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+        
+        def get_day_name(dt):
+            return day_names[(dt.weekday() + 1) % 7]
+
+        def parse_due_datetime(due_date, due_time):
+            if not due_date:
+                return None
+            raw_time = due_time or '12:00'
+            try:
+                return datetime.fromisoformat(f'{due_date}T{raw_time}')
+            except Exception:
+                try:
+                    return datetime.fromisoformat(due_date)
+                except Exception:
+                    return None
+
+        # --- Heatmap: day-of-week × hour ---
+        heatmap = {d: {h: 0 for h in range(24)} for d in day_names}
+        due_heatmap = {d: {h: 0 for h in range(24)} for d in day_names}
+        due_status_heatmap = {
+            d: {h: {'completed': 0, 'active': 0} for h in range(24)}
+            for d in day_names
+        }
+        for i in items:
+            created_dt = parse_iso_datetime(i['createdAt'])
+            if created_dt:
+                heatmap[get_day_name(created_dt)][created_dt.hour] += 1
+
+            due_dt = parse_due_datetime(i.get('dueDate'), i.get('dueTime'))
+            if due_dt:
+                due_heatmap[get_day_name(due_dt)][due_dt.hour] += 1
+                due_status_heatmap[get_day_name(due_dt)][due_dt.hour][i['status']] += 1
+
+        # --- Peak assignment hour & day ---
+        assignment_hour_counts = {h: 0 for h in range(24)}
+        assignment_day_counts = {d: 0 for d in day_names}
+        for i in items:
+            dt = parse_iso_datetime(i['createdAt'])
+            if dt:
+                assignment_hour_counts[dt.hour] += 1
+                assignment_day_counts[get_day_name(dt)] += 1
+
+        assignment_peak_hour = max(assignment_hour_counts, key=assignment_hour_counts.get) if any(assignment_hour_counts.values()) else 10
+        assignment_peak_day = max(assignment_day_counts, key=assignment_day_counts.get) if any(assignment_day_counts.values()) else 'Monday'
+
+        # --- Due-based metrics and trend ---
+        now_dt = datetime.now()
+        scheduled_items = []
+        overdue_tasks = 0
+        upcoming_7_days = 0
+        due_hour_counts = {h: 0 for h in range(24)}
+        due_day_counts = {d: 0 for d in day_names}
+
+        for i in items:
+            due_dt = parse_due_datetime(i.get('dueDate'), i.get('dueTime'))
+            if not due_dt:
+                continue
+
+            scheduled_items.append(i)
+            due_hour_counts[due_dt.hour] += 1
+            due_day_counts[get_day_name(due_dt)] += 1
+
+            if i['status'] == 'active' and due_dt < now_dt:
+                overdue_tasks += 1
+
+            days_until_due = (due_dt.date() - now_dt.date()).days
+            if 0 <= days_until_due <= 6:
+                upcoming_7_days += 1
+
+        scheduled_tasks = len(scheduled_items)
+        unscheduled_tasks = total - scheduled_tasks
+        explicit_scheduled_tasks = len([i for i in scheduled_items if i.get('dueSource') == 'manual'])
+        inferred_scheduled_tasks = len([i for i in scheduled_items if i.get('dueSource') == 'inferred_created_at'])
+        schedule_coverage_rate = round((scheduled_tasks / total) * 100) if total > 0 else 0
+        planned_completion_rate = round(
+            (len([i for i in scheduled_items if i['status'] == 'completed']) / scheduled_tasks) * 100
+        ) if scheduled_tasks > 0 else 0
+        due_peak_hour = max(due_hour_counts, key=due_hour_counts.get) if any(due_hour_counts.values()) else 10
+        due_peak_day = max(due_day_counts, key=due_day_counts.get) if any(due_day_counts.values()) else 'Monday'
+
         today = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
         last_30_days = []
         for offset in range(29, -1, -1):
             day = today - __import__('datetime').timedelta(days=offset)
             day_str = day.strftime('%Y-%m-%d')
-            day_items = [i for i in items if i['createdAt'] and i['createdAt'][:10] == day_str]
+            day_items = [i for i in scheduled_items if i.get('dueDate') == day_str]
             last_30_days.append({
                 'date': day_str,
                 'completed': len([i for i in day_items if i['status'] == 'completed']),
                 'active': len([i for i in day_items if i['status'] == 'active'])
             })
 
-        # --- Heatmap: day-of-week × hour ---
-        day_names = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
-        heatmap = {d: {h: 0 for h in range(24)} for d in day_names}
-        for i in items:
-            try:
-                raw = i['createdAt']
-                if not raw:
-                    continue
-                raw = raw.replace('Z', '+00:00')
-                dt = datetime.fromisoformat(raw)
-                heatmap[day_names[dt.weekday() + 1 if dt.weekday() < 6 else 0]][dt.hour] += 1
-            except Exception:
-                pass
+        # --- Recent tasks prioritized by due date ---
+        def sort_key(item):
+            due_dt = parse_due_datetime(item.get('dueDate'), item.get('dueTime'))
+            created_dt = parse_iso_datetime(item.get('createdAt'))
+            if due_dt:
+                return (0, due_dt.isoformat())
+            if created_dt:
+                return (1, created_dt.isoformat())
+            return (2, '')
 
-        # --- Peak hour & day ---
-        hour_counts = {h: 0 for h in range(24)}
-        day_counts = {d: 0 for d in day_names}
-        for i in items:
-            try:
-                raw = i['createdAt']
-                if not raw:
-                    continue
-                raw = raw.replace('Z', '+00:00')
-                dt = datetime.fromisoformat(raw)
-                hour_counts[dt.hour] += 1
-                day_counts[day_names[dt.weekday() + 1 if dt.weekday() < 6 else 0]] += 1
-            except Exception:
-                pass
-
-        peak_hour = max(hour_counts, key=hour_counts.get) if any(hour_counts.values()) else 10
-        peak_day = max(day_counts, key=day_counts.get) if any(day_counts.values()) else 'Monday'
-
-        # --- Avg completion time ---
-        completion_times = []
-        for i in items:
-            if i['status'] == 'completed' and i['createdAt'] and i['updatedAt']:
-                try:
-                    c = datetime.fromisoformat(i['createdAt'].replace('Z', '+00:00'))
-                    u = datetime.fromisoformat(i['updatedAt'].replace('Z', '+00:00'))
-                    diff_days = (u - c).total_seconds() / 86400
-                    if diff_days >= 0:
-                        completion_times.append(diff_days)
-                except Exception:
-                    pass
-
-        avg_completion = f"{round(sum(completion_times) / len(completion_times), 1)} д." if completion_times else 'N/A'
-
-        # --- Recent activities (last 10 tasks by updatedAt) ---
-        recent = sorted(items, key=lambda x: x['updatedAt'] or '', reverse=True)[:10]
+        recent = sorted(items, key=sort_key)[:10]
         recent_activities = [{
             'id': i['id'],
             'text': i['text'],
             'action': i['status'],
-            'timestamp': i['updatedAt'] or i['createdAt'],
+            'timestamp': i['dueDate'] or i['createdAt'],
             'category': i['category'] or 'other',
-            'priority': i['priority'] or 'low'
+            'priority': i['priority'] or 'low',
+            'createdAt': i['createdAt'],
+            'dueDate': i['dueDate'],
+            'dueTime': i['dueTime']
         } for i in recent]
 
         analytics = {
@@ -598,9 +684,22 @@ def get_dashboard_analytics(user_id):
             'topCategories': top_categories,
             'last30Days': last_30_days,
             'heatmapData': heatmap,
-            'peakProductivityHour': peak_hour,
-            'peakProductivityDay': peak_day,
-            'avgCompletionTime': avg_completion,
+            'dueHeatmapData': due_heatmap,
+            'dueStatusHeatmapData': due_status_heatmap,
+            'peakProductivityHour': assignment_peak_hour,
+            'peakProductivityDay': assignment_peak_day,
+            'assignmentPeakHour': assignment_peak_hour,
+            'assignmentPeakDay': assignment_peak_day,
+            'duePeakHour': due_peak_hour,
+            'duePeakDay': due_peak_day,
+            'scheduledTasks': scheduled_tasks,
+            'explicitScheduledTasks': explicit_scheduled_tasks,
+            'inferredScheduledTasks': inferred_scheduled_tasks,
+            'unscheduledTasks': unscheduled_tasks,
+            'scheduleCoverageRate': schedule_coverage_rate,
+            'plannedCompletionRate': planned_completion_rate,
+            'overdueTasks': overdue_tasks,
+            'upcomingTasks7Days': upcoming_7_days,
             'recentActivities': recent_activities
         }
 

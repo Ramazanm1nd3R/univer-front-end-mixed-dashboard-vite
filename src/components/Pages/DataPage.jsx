@@ -9,12 +9,53 @@ import './DataPage.css';
 // HELPERS
 // ─────────────────────────────────────────────
 
-const getHeatmapColor = (count) => {
+const getActivityHeatmapColor = (count) => {
   if (count === 0) return 'var(--bg-secondary)';
   if (count <= 1) return '#dbeafe';
   if (count <= 3) return '#93c5fd';
   if (count <= 6) return '#3b82f6';
   return '#1d4ed8';
+};
+
+const getDueHeatmapColor = (count) => {
+  if (count === 0) return 'var(--bg-secondary)';
+  if (count <= 1) return '#fed7aa';
+  if (count <= 3) return '#fdba74';
+  if (count <= 6) return '#f97316';
+  return '#c2410c';
+};
+
+const getHeatmapCellStyle = (activityCount, dueCount) => {
+  const hasActivity = activityCount > 0;
+  const hasDueDate = dueCount > 0;
+
+  if (!hasActivity && !hasDueDate) {
+    return {
+      background: 'var(--bg-secondary)',
+      borderColor: 'rgba(59, 130, 246, 0.12)',
+      opacity: 0.35,
+    };
+  }
+
+  if (hasActivity && hasDueDate) {
+    return {
+      background: `linear-gradient(135deg, ${getActivityHeatmapColor(activityCount)} 0%, ${getActivityHeatmapColor(activityCount)} 48%, ${getDueHeatmapColor(dueCount)} 52%, ${getDueHeatmapColor(dueCount)} 100%)`,
+      borderColor: 'rgba(249, 115, 22, 0.45)',
+      opacity: 1,
+    };
+  }
+
+  return hasActivity
+    ? {
+        background: getActivityHeatmapColor(activityCount),
+        borderColor: 'rgba(59, 130, 246, 0.25)',
+        opacity: 1,
+      }
+    : {
+        background: getDueHeatmapColor(dueCount),
+        borderColor: 'rgba(249, 115, 22, 0.35)',
+        opacity: 1,
+      };
 };
 
 const getPriorityColor = (priority) => {
@@ -116,7 +157,7 @@ function MainStats({ analytics }) {
 }
 
 // ─── Heatmap 7×24 ────────────────────────────
-function Heatmap({ heatmapData }) {
+function Heatmap({ heatmapData, dueHeatmapData, dueStatusHeatmapData }) {
   const [tooltip, setTooltip] = useState(null);
   return (
     <div className="section-card">
@@ -143,17 +184,21 @@ function Heatmap({ heatmapData }) {
               {DAY_KEYS.map(day => (
                 <div key={day} className="heatmap-row">
                   {Array.from({ length:24 }, (_, hour) => {
-                    const count = (heatmapData[day] || {})[hour] || 0;
+                    const activityCount = (heatmapData[day] || {})[hour] || 0;
+                    const dueCount = (dueHeatmapData?.[day] || {})[hour] || 0;
+                    const dueCompleted = (dueStatusHeatmapData?.[day] || {})[hour]?.completed || 0;
+                    const dueActive = (dueStatusHeatmapData?.[day] || {})[hour]?.active || 0;
+                    const totalCount = activityCount + dueCount;
                     return (
                       <div
                         key={hour}
                         className="heatmap-cell"
-                        style={{ backgroundColor: getHeatmapColor(count), opacity: count === 0 ? 0.35 : 1 }}
-                        title={`${day} ${hour}:00 — ${count} задач`}
-                        onMouseEnter={() => setTooltip({ day, hour, count })}
+                        style={getHeatmapCellStyle(activityCount, dueCount)}
+                        title={`${day} ${hour}:00 — назначено: ${activityCount}, сроков: ${dueCount}, выполнено: ${dueCompleted}, активно: ${dueActive}`}
+                        onMouseEnter={() => setTooltip({ day, hour, activityCount, dueCount, dueCompleted, dueActive })}
                         onMouseLeave={() => setTooltip(null)}
                       >
-                        {count > 0 && <span className="heatmap-value">{count}</span>}
+                        {totalCount > 0 && <span className="heatmap-value">{totalCount}</span>}
                       </div>
                     );
                   })}
@@ -165,16 +210,32 @@ function Heatmap({ heatmapData }) {
 
         {tooltip && (
           <div style={{ marginTop:'0.75rem', padding:'0.625rem 1rem', background:'var(--bg-secondary)', borderRadius:8, fontSize:'0.875rem', color:'var(--text-secondary)', fontWeight:600, border:'1px solid var(--border-primary)' }}>
-            📍 {tooltip.day} в {tooltip.hour}:00 — <strong style={{ color:'var(--text-primary)' }}>{tooltip.count} задач</strong>
+            📍 {tooltip.day} в {tooltip.hour}:00
+            {' • '}
+            <strong style={{ color:'#2563eb' }}>Назначено: {tooltip.activityCount}</strong>
+            {' • '}
+            <strong style={{ color:'#ea580c' }}>Сроков: {tooltip.dueCount}</strong>
+            {' • '}
+            <strong style={{ color:'#16a34a' }}>Выполнено: {tooltip.dueCompleted}</strong>
+            {' • '}
+            <strong style={{ color:'var(--text-primary)' }}>Активно: {tooltip.dueActive}</strong>
           </div>
         )}
 
-        <div style={{ display:'flex', alignItems:'center', gap:'0.5rem', marginTop:'1rem' }}>
-          <span style={{ fontSize:'0.8rem', color:'var(--text-secondary)', fontWeight:600 }}>Меньше</span>
-          {['var(--bg-secondary)','#dbeafe','#93c5fd','#3b82f6','#1d4ed8'].map((c, i) => (
-            <div key={i} style={{ width:20, height:20, borderRadius:4, background:c, border:'1px solid var(--border-primary)' }} />
-          ))}
-          <span style={{ fontSize:'0.8rem', color:'var(--text-secondary)', fontWeight:600 }}>Больше</span>
+        <div style={{ display:'flex', alignItems:'center', gap:'0.75rem', marginTop:'1rem', flexWrap:'wrap' }}>
+          <span style={{ fontSize:'0.8rem', color:'var(--text-secondary)', fontWeight:600 }}>Легенда:</span>
+          <div style={{ display:'flex', alignItems:'center', gap:'0.4rem' }}>
+            <div style={{ width:20, height:20, borderRadius:4, background:'#3b82f6', border:'1px solid rgba(59,130,246,0.25)' }} />
+            <span style={{ fontSize:'0.8rem', color:'var(--text-secondary)', fontWeight:600 }}>Время назначения задач</span>
+          </div>
+          <div style={{ display:'flex', alignItems:'center', gap:'0.4rem' }}>
+            <div style={{ width:20, height:20, borderRadius:4, background:'#f97316', border:'1px solid rgba(249,115,22,0.35)' }} />
+            <span style={{ fontSize:'0.8rem', color:'var(--text-secondary)', fontWeight:600 }}>Слоты по срокам</span>
+          </div>
+          <div style={{ display:'flex', alignItems:'center', gap:'0.4rem' }}>
+            <div style={{ width:20, height:20, borderRadius:4, background:'linear-gradient(135deg, #3b82f6 0%, #3b82f6 48%, #f97316 52%, #f97316 100%)', border:'1px solid rgba(249,115,22,0.35)' }} />
+            <span style={{ fontSize:'0.8rem', color:'var(--text-secondary)', fontWeight:600 }}>Действие + дата</span>
+          </div>
         </div>
       </div>
     </div>
@@ -274,19 +335,22 @@ function DistributionSection({ analytics }) {
 
 // ─── Insights ─────────────────────────────────
 function InsightsSection({ analytics, aiInsights, aiLoading }) {
-  const { peakProductivityHour, peakProductivityDay, avgCompletionTime, topCategories } = analytics;
+  const { assignmentPeakHour, duePeakDay, duePeakHour, scheduleCoverageRate, plannedCompletionRate, overdueTasks, inferredScheduledTasks, topCategories } = analytics;
   const topCat = topCategories[0];
+  const inferredNote = inferredScheduledTasks > 0
+    ? ` Часть сроков восстановлена автоматически (${inferredScheduledTasks}).`
+    : '';
   const texts = aiInsights || {
-    productivity: `Больше всего задач создаётся в ${peakProductivityHour}:00. Планируй важное на это время.`,
-    bestDay: `Самый активный день — ${peakProductivityDay}. Именно тогда ты наиболее продуктивен.`,
-    completionTime: `Среднее время закрытия задачи: ${avgCompletionTime}.${avgCompletionTime === 'N/A' ? ' Заверши задачи чтобы увидеть метрику.' : ' Отличный темп!'}`,
+    productivity: `Чаще всего ты назначаешь задачи около ${assignmentPeakHour}:00. Это главное окно планирования.`,
+    bestDay: `Самая плотная точка по срокам сейчас — ${duePeakDay} в ${duePeakHour}:00.`,
+    completionTime: `Сроки стоят у ${scheduleCoverageRate}% задач, выполнено среди них ${plannedCompletionRate}%. Просроченных активных: ${overdueTasks}.${inferredNote}`,
     topCategory: topCat ? `«${topCat.name}» занимает ${topCat.percentage}% задач (${topCat.count} шт).` : 'Добавь задачи с категориями.',
   };
 
   const cards = [
-    { type:'success', icon:'⏰', title:'Пик продуктивности',        text:texts.productivity },
-    { type:'info',    icon:'📅', title:'Лучший день',               text:texts.bestDay },
-    { type:'warning', icon:'⏱️', title:'Среднее время выполнения', text:texts.completionTime },
+    { type:'success', icon:'⏰', title:'Окно планирования',         text:texts.productivity },
+    { type:'info',    icon:'📅', title:'Пиковый слот по срокам',    text:texts.bestDay },
+    { type:'warning', icon:'🗂️', title:'План и статусы',           text:texts.completionTime },
     { type:'error',   icon:'🏆', title:'Топ-категория',            text:texts.topCategory },
   ];
   return (
@@ -322,34 +386,36 @@ function InsightsSection({ analytics, aiInsights, aiLoading }) {
 
 // ─── Predictions ──────────────────────────────
 function PredictionsSection({ analytics, aiPredictions, aiLoading }) {
-  const { completionRate, totalTasks, activeTasks, peakProductivityHour } = analytics;
+  const { totalTasks, activeTasks, upcomingTasks7Days, overdueTasks, plannedCompletionRate, duePeakHour } = analytics;
   const burnoutRisk  = activeTasks > totalTasks * 0.7 ? 'high' : activeTasks > totalTasks * 0.4 ? 'medium' : 'low';
   const burnoutLabel = { high:'🔴 Высокий', medium:'🟡 Средний', low:'🟢 Низкий' }[burnoutRisk];
   const burnoutCard  = { high:'danger',    medium:'warning',     low:'success'  }[burnoutRisk];
-  const nextWeekEst  = Math.max(1, Math.round((totalTasks / 30) * 7));
+  const nextWeekEst  = Math.max(1, upcomingTasks7Days || Math.round((totalTasks / 30) * 7));
   const recommended  = Math.max(1, Math.round(nextWeekEst / 7));
-  const optimalHours = [peakProductivityHour, (peakProductivityHour + 2) % 24].sort((a, b) => a - b);
+  const optimalHours = [duePeakHour, (duePeakHour + 1) % 24].sort((a, b) => a - b);
 
   const texts = aiPredictions || {
-    nextWeekForecast: 'Ожидаемое кол-во задач на следующую неделю на основе текущего темпа.',
-    burnoutRisk: burnoutRisk === 'high'
+    nextWeekForecast: 'Ожидаемая плановая нагрузка на ближайшую неделю по срокам задач.',
+    burnoutRisk: overdueTasks > 0
+      ? `Есть ${overdueTasks} просроченных активных задач. Сначала разгрузи их.`
+      : burnoutRisk === 'high'
       ? 'Слишком много незакрытых задач. Постарайся завершить часть из них.'
       : burnoutRisk === 'medium'
       ? 'Умеренная нагрузка. Следи за балансом.'
       : 'Нагрузка в норме. Отличный ритм!',
     dailyRecommendation: 'Рекомендуемое количество задач в день для текущего темпа.',
-    completionSpeed: completionRate >= 70
-      ? 'Превосходный результат! Продолжай в том же духе.'
-      : completionRate >= 40
-      ? 'Хороший результат. Есть куда расти.'
-      : 'Попробуй разбивать задачи на маленькие шаги.',
+    completionSpeed: plannedCompletionRate >= 70
+      ? 'Большая часть задач со сроком уже доводится до нужного статуса.'
+      : plannedCompletionRate >= 40
+      ? 'Темп средний: часть плановых задач стоит выравнивать по дням.'
+      : 'План перегружен: лучше ставить меньше задач на один день.',
   };
 
   const cards = [
-    { type:'highlight', icon:'📆', value:nextWeekEst,   label:'Прогноз на неделю',    desc:texts.nextWeekForecast },
+    { type:'highlight', icon:'📆', value:nextWeekEst,   label:'Сроков на 7 дней',     desc:texts.nextWeekForecast },
     { type:burnoutCard, icon:'🔥', value:burnoutLabel,  label:'Риск перегрузки',      desc:texts.burnoutRisk },
     { type:'info',      icon:'✅', value:recommended,   label:'Задач в день (рек.)',  desc:texts.dailyRecommendation },
-    { type:'success',   icon:'🏅', value:`${completionRate}%`, label:'Скорость выполнения', desc:texts.completionSpeed },
+    { type:'success',   icon:'🏅', value:`${plannedCompletionRate}%`, label:'Выполнение по плану', desc:texts.completionSpeed },
   ];
 
   return (
@@ -396,8 +462,8 @@ function PredictionsSection({ analytics, aiPredictions, aiLoading }) {
           ))}
         </div>
         <div className="optimal-hours-description">
-          На основе твоей активности наиболее продуктивное время — <strong>{peakProductivityHour}:00</strong>.
-          Планируй приоритетные задачи именно в эти часы для максимальной эффективности.
+          На основе того, на какие часы у тебя чаще ставятся сроки, ключевой слот нагрузки — <strong>{duePeakHour}:00</strong>.
+          Не перегружай эти часы и распределяй приоритетные задачи ровнее.
         </div>
       </div>
     </>
@@ -428,7 +494,7 @@ function RecentActivities({ activities }) {
               <th>Статус</th>
               <th>Категория</th>
               <th>Приоритет</th>
-              <th>Обновлено</th>
+              <th>Срок / назначение</th>
             </tr>
           </thead>
           <tbody>
@@ -438,7 +504,11 @@ function RecentActivities({ activities }) {
                 <td><span className={`status-tag ${a.action}`}>{a.action === 'completed' ? '✅ Завершено' : '⚡ Активно'}</span></td>
                 <td><span className="category-tag">{a.category}</span></td>
                 <td><span className={`priority-tag ${a.priority}`}>{getPriorityLabel(a.priority)}</span></td>
-                <td className="date-cell">{formatDate(a.timestamp)}</td>
+                <td className="date-cell">
+                  {a.dueDate
+                    ? `${a.dueDate}${a.dueTime ? ` ${a.dueTime}` : ''}`
+                    : formatDate(a.createdAt)}
+                </td>
               </tr>
             ))}
           </tbody>
@@ -610,6 +680,12 @@ function DataPage() {
         </div>
       )}
 
+      {analytics.inferredScheduledTasks > 0 && (
+        <div style={{ marginBottom: '1rem', padding: '0.875rem 1rem', borderRadius: 12, border: '1px solid rgba(249, 115, 22, 0.25)', background: 'rgba(249, 115, 22, 0.08)', color: 'var(--text-secondary)', fontSize: '0.9rem', fontWeight: 600 }}>
+          Для {analytics.inferredScheduledTasks} задач сроки были восстановлены автоматически по дате создания, чтобы legacy-данные корректно участвовали в аналитике.
+        </div>
+      )}
+
       {/* View Tabs */}
       <div className="view-tabs">
         {VIEWS.map(v => (
@@ -627,7 +703,11 @@ function DataPage() {
         <>
           <InsightsSection analytics={analytics} aiInsights={aiInsights} aiLoading={aiLoading} />
           <TrendChart last30Days={analytics.last30Days} />
-          <Heatmap heatmapData={analytics.heatmapData} />
+          <Heatmap
+            heatmapData={analytics.heatmapData}
+            dueHeatmapData={analytics.dueHeatmapData}
+            dueStatusHeatmapData={analytics.dueStatusHeatmapData}
+          />
         </>
       )}
 

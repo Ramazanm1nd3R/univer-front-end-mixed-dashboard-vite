@@ -24,6 +24,12 @@ function useRequiredContext(context, hookName) {
 }
 
 function mapApiItem(item) {
+  const normalizedDueDate = item.dueDate
+    ? item.dueTime
+      ? `${item.dueDate}T${item.dueTime}`
+      : item.dueDate
+    : '';
+
   return {
     id: item.id,
     title: item.text,
@@ -33,7 +39,7 @@ function mapApiItem(item) {
     priority: item.priority || 'medium',
     date: item.createdAt ? new Date(item.createdAt) : new Date(),
     updatedAt: item.updatedAt ? new Date(item.updatedAt) : new Date(),
-    dueDate: item.dueDate || '',
+    dueDate: normalizedDueDate,
     dueTime: item.dueTime || '',
     likes: 0,
   };
@@ -110,6 +116,8 @@ export function DashboardProvider({ children }) {
         status: newItem.status || 'active',
         priority: newItem.priority || 'medium',
         category: newItem.category || 'other',
+        dueDate: newItem.dueDate || null,
+        dueTime: newItem.dueTime || null,
       });
 
       if (!result.success) {
@@ -135,6 +143,8 @@ export function DashboardProvider({ children }) {
         status: updatedItem.status,
         priority: updatedItem.priority,
         category: updatedItem.category,
+        dueDate: updatedItem.dueDate || null,
+        dueTime: updatedItem.dueTime || null,
       });
 
       if (!result.success) {
@@ -184,6 +194,8 @@ export function DashboardProvider({ children }) {
         status: newStatus,
         priority: item.priority,
         category: item.category,
+        dueDate: item.dueDate ? item.dueDate.split('T')[0] : null,
+        dueTime: item.dueTime || null,
       });
 
       if (!result.success) {
