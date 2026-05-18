@@ -1,5 +1,6 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import api from '../services/api';
+import { safeParseJSON } from '../utils/safeParseJSON';
 
 const AuthContext = createContext();
 
@@ -17,14 +18,15 @@ export const AuthProvider = ({ children }) => {
   const [pendingVerification, setPendingVerification] = useState(null);
 
   useEffect(() => {
-    const savedSession = localStorage.getItem('currentSession');
-    if (savedSession) {
-      const session = JSON.parse(savedSession);
+    const session = safeParseJSON(localStorage.getItem('currentSession'));
+    if (session?.expiresAt && session?.user) {
       if (new Date(session.expiresAt) > new Date()) {
         setCurrentUser(session.user);
       } else {
         localStorage.removeItem('currentSession');
       }
+    } else if (localStorage.getItem('currentSession')) {
+      localStorage.removeItem('currentSession');
     }
     setLoading(false);
   }, []);
@@ -84,8 +86,8 @@ export const AuthProvider = ({ children }) => {
 
   // Регистрация - шаг 2 (после ввода кода)
   const completeRegister = async (code) => {
-    const verification = JSON.parse(localStorage.getItem('pendingVerification') || '{}');
-    const userData = JSON.parse(localStorage.getItem('pendingRegistration') || '{}');
+    const verification = safeParseJSON(localStorage.getItem('pendingVerification'), {});
+    const userData = safeParseJSON(localStorage.getItem('pendingRegistration'), {});
 
     if (!verification.code || !userData.email) {
       throw new Error('Данные не найдены');
@@ -150,7 +152,7 @@ export const AuthProvider = ({ children }) => {
 
   // Вход - шаг 2 (после ввода кода)
   const completeLogin = async (code) => {
-    const verification = JSON.parse(localStorage.getItem('pendingVerification') || '{}');
+    const verification = safeParseJSON(localStorage.getItem('pendingVerification'), {});
     const userId = localStorage.getItem('pendingLoginUserId');
 
     if (!verification.code || !userId) {
@@ -209,8 +211,8 @@ export const AuthProvider = ({ children }) => {
 
   // Повторная отправка кода
   const resendCode = async () => {
-    const verification = JSON.parse(localStorage.getItem('pendingVerification') || '{}');
-    
+    const verification = safeParseJSON(localStorage.getItem('pendingVerification'), {});
+
     if (!verification.email) {
       throw new Error('Нет активной верификации');
     }

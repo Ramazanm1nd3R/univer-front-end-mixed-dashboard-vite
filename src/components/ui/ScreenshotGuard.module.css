@@ -1,0 +1,133 @@
+.root {
+  position: relative;
+  min-height: 100vh;
+  isolation: isolate;
+}
+
+.content {
+  position: relative;
+  z-index: 1;
+  transition: opacity 0.12s ease, filter 0.12s ease;
+}
+
+.protected .content {
+  opacity: 0;
+  visibility: hidden;
+  filter: blur(40px) saturate(0) brightness(0.4);
+  pointer-events: none;
+  user-select: none;
+}
+
+.lockOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  background:
+    radial-gradient(circle at top, rgba(37, 99, 235, 0.22), transparent 35%),
+    rgba(2, 6, 23, 0.96);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  animation: fadeIn 0.12s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.lockCard {
+  width: min(100%, 34rem);
+  padding: 2rem 1.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 24px;
+  background: rgba(15, 23, 42, 0.92);
+  box-shadow: 0 20px 60px rgba(2, 6, 23, 0.55);
+  text-align: center;
+  color: #f8fafc;
+}
+
+.lockBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1rem;
+  padding: 0.38rem 0.85rem;
+  border-radius: 999px;
+  border: 1px solid rgba(96, 165, 250, 0.34);
+  background: rgba(96, 165, 250, 0.16);
+  color: #bfdbfe;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.lockTitle {
+  margin-bottom: 0.75rem;
+  font-size: clamp(1.6rem, 3vw, 2.2rem);
+  font-weight: 800;
+}
+
+.lockText {
+  margin: 0 0 0.85rem;
+  line-height: 1.6;
+  color: rgba(241, 245, 249, 0.92);
+  font-weight: 500;
+}
+
+.lockHint {
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: rgba(148, 163, 184, 0.85);
+}
+
+.unlockButton {
+  margin-top: 1.25rem;
+  padding: 0.75rem 1.5rem;
+  border: 1px solid rgba(96, 165, 250, 0.4);
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.85), rgba(29, 78, 216, 0.85));
+  color: #f8fafc;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.3);
+}
+
+.unlockButton:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 32px rgba(15, 23, 42, 0.4);
+}
+
+.unlockButton:focus-visible {
+  outline: 2px solid rgba(96, 165, 250, 0.8);
+  outline-offset: 2px;
+}
+
+@media (max-width: 640px) {
+  .lockCard {
+    padding: 1.5rem 1.25rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .lockCard {
+    padding: 1.25rem 1rem;
+    border-radius: 18px;
+  }
+
+  .lockTitle {
+    font-size: 1.35rem;
+  }
+}
+

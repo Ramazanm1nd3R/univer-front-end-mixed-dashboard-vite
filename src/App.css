@@ -106,6 +106,86 @@ body {
   transition: background 0.4s ease, color 0.3s ease;
 }
 
+.screen-guard-shell {
+  position: relative;
+  min-height: 100vh;
+}
+
+.screen-guard-shell-active .app-content,
+.screen-guard-shell-active header,
+.screen-guard-shell-active .notifications-container {
+  filter: blur(18px) saturate(0.6);
+  user-select: none;
+  pointer-events: none;
+}
+
+.screen-guard-shell-active::before {
+  content: 'TaskFlow Protected';
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: clamp(2.2rem, 7vw, 5.5rem);
+  font-weight: 800;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.08);
+  transform: rotate(-24deg);
+  pointer-events: none;
+  z-index: 2390;
+}
+
+.screen-guard-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2400;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  background:
+    radial-gradient(circle at top, rgba(37, 99, 235, 0.28), transparent 35%),
+    rgba(8, 15, 32, 0.72);
+  backdrop-filter: blur(14px);
+}
+
+.screen-guard-card {
+  width: min(100%, 34rem);
+  padding: 1.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 24px;
+  background: rgba(15, 23, 42, 0.86);
+  box-shadow: 0 24px 80px rgba(8, 15, 32, 0.45);
+  text-align: center;
+  color: #f8fafc;
+}
+
+.screen-guard-card h2 {
+  margin-bottom: 0.75rem;
+  font-size: clamp(1.6rem, 3vw, 2.2rem);
+  font-weight: 800;
+}
+
+.screen-guard-card p {
+  font-size: 1rem;
+  line-height: 1.6;
+  color: rgba(241, 245, 249, 0.82);
+}
+
+.screen-guard-badge {
+  display: inline-flex;
+  margin-bottom: 1rem;
+  padding: 0.38rem 0.8rem;
+  border-radius: 999px;
+  background: rgba(96, 165, 250, 0.16);
+  border: 1px solid rgba(96, 165, 250, 0.32);
+  color: #bfdbfe;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
 .app-content {
   max-width: 1480px;
   margin: 0 auto;
@@ -256,6 +336,14 @@ body.page-404 {
 }
 
 @media (max-width: 768px) {
+  .screen-guard-card {
+    padding: 1.25rem;
+  }
+
+  .screen-guard-shell-active::before {
+    letter-spacing: 0.18em;
+  }
+
   .notifications-container {
     right: 1rem;
     left: 1rem;
@@ -268,3 +356,4 @@ body.page-404 {
     width: 100%;
   }
 }
+

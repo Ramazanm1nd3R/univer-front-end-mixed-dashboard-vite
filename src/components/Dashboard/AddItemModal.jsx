@@ -1,4 +1,5 @@
-import React, { memo, useCallback, useMemo, useRef, useState } from 'react';
+import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import '../../styles/Dashboard.css';
 import { useForm } from '../../hooks/useForm';
 import {
@@ -24,6 +25,22 @@ function AddItemModal({ onClose, onAdd }) {
   const [scheduleTouched, setScheduleTouched] = useState({});
   const dueDateRef = useRef(null);
   const dueTimeRef = useRef(null);
+  const isMountedRef = useRef(true);
+
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, []);
 
   const {
     values: formData,
@@ -104,6 +121,7 @@ function AddItemModal({ onClose, onAdd }) {
 
     setIsSubmitting(true);
     const success = await onAdd(buildTaskPayload(formData, nextSchedule));
+    if (!isMountedRef.current) return success;
     setIsSubmitting(false);
 
     if (success) {
@@ -119,7 +137,7 @@ function AddItemModal({ onClose, onAdd }) {
   const titleNear = titleLen > MAX_TITLE * 0.8;
   const mergedErrors = { ...errors, ...scheduleErrors };
 
-  return (
+  return createPortal(
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content modal-modern" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header-modern">
@@ -257,7 +275,8 @@ function AddItemModal({ onClose, onAdd }) {
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 

@@ -159,6 +159,13 @@ function MainStats({ analytics }) {
 // ─── Heatmap 7×24 ────────────────────────────
 function Heatmap({ heatmapData, dueHeatmapData, dueStatusHeatmapData }) {
   const [tooltip, setTooltip] = useState(null);
+
+  const handleCellEnter = useCallback((dayIdx, hour, activityCount, dueCount, dueCompleted, dueActive) => {
+    setTooltip({ dayIdx, hour, activityCount, dueCount, dueCompleted, dueActive });
+  }, []);
+
+  const handleCellLeave = useCallback(() => setTooltip(null), []);
+
   return (
     <div className="section-card">
       <div className="section-header">
@@ -176,29 +183,31 @@ function Heatmap({ heatmapData, dueHeatmapData, dueStatusHeatmapData }) {
           {/* Body */}
           <div className="heatmap-content">
             <div className="heatmap-labels-x">
-              {[0,3,6,9,12,15,18,21,23].map(h => (
-                <span key={h} style={{ fontSize:'0.7rem', color:'var(--text-secondary)', fontWeight:600 }}>{h}:00</span>
+              {Array.from({ length: 24 }, (_, h) => (
+                <span key={h} className="heatmap-label-x">
+                  {h % 3 === 0 ? `${h}:00` : ''}
+                </span>
               ))}
             </div>
             <div className="heatmap-cells">
-              {DAY_KEYS.map(day => (
+              {DAY_KEYS.map((day, dayIdx) => (
                 <div key={day} className="heatmap-row">
                   {Array.from({ length:24 }, (_, hour) => {
-                    const activityCount = (heatmapData[day] || {})[hour] || 0;
-                    const dueCount = (dueHeatmapData?.[day] || {})[hour] || 0;
-                    const dueCompleted = (dueStatusHeatmapData?.[day] || {})[hour]?.completed || 0;
-                    const dueActive = (dueStatusHeatmapData?.[day] || {})[hour]?.active || 0;
-                    const totalCount = activityCount + dueCount;
+                    const activityCount = heatmapData?.[day]?.[hour] || 0;
+                    const dueCount = dueHeatmapData?.[day]?.[hour] || 0;
+                    const dueCompleted = dueStatusHeatmapData?.[day]?.[hour]?.completed || 0;
+                    const dueActive = dueStatusHeatmapData?.[day]?.[hour]?.active || 0;
+                    const hasBoth = activityCount > 0 && dueCount > 0;
+                    const displayCount = hasBoth ? '•' : (activityCount || dueCount || '');
                     return (
                       <div
                         key={hour}
                         className="heatmap-cell"
                         style={getHeatmapCellStyle(activityCount, dueCount)}
-                        title={`${day} ${hour}:00 — назначено: ${activityCount}, сроков: ${dueCount}, выполнено: ${dueCompleted}, активно: ${dueActive}`}
-                        onMouseEnter={() => setTooltip({ day, hour, activityCount, dueCount, dueCompleted, dueActive })}
-                        onMouseLeave={() => setTooltip(null)}
+                        onMouseEnter={() => handleCellEnter(dayIdx, hour, activityCount, dueCount, dueCompleted, dueActive)}
+                        onMouseLeave={handleCellLeave}
                       >
-                        {totalCount > 0 && <span className="heatmap-value">{totalCount}</span>}
+                        {displayCount !== '' && <span className="heatmap-value">{displayCount}</span>}
                       </div>
                     );
                   })}
@@ -208,19 +217,23 @@ function Heatmap({ heatmapData, dueHeatmapData, dueStatusHeatmapData }) {
           </div>
         </div>
 
-        {tooltip && (
-          <div style={{ marginTop:'0.75rem', padding:'0.625rem 1rem', background:'var(--bg-secondary)', borderRadius:8, fontSize:'0.875rem', color:'var(--text-secondary)', fontWeight:600, border:'1px solid var(--border-primary)' }}>
-            📍 {tooltip.day} в {tooltip.hour}:00
-            {' • '}
-            <strong style={{ color:'#2563eb' }}>Назначено: {tooltip.activityCount}</strong>
-            {' • '}
-            <strong style={{ color:'#ea580c' }}>Сроков: {tooltip.dueCount}</strong>
-            {' • '}
-            <strong style={{ color:'#16a34a' }}>Выполнено: {tooltip.dueCompleted}</strong>
-            {' • '}
-            <strong style={{ color:'var(--text-primary)' }}>Активно: {tooltip.dueActive}</strong>
-          </div>
-        )}
+        <div className="heatmap-tooltip-slot">
+          {tooltip ? (
+            <div className="heatmap-tooltip">
+              📍 {DAY_LABELS[tooltip.dayIdx]} в {String(tooltip.hour).padStart(2, '0')}:00
+              {' • '}
+              <strong style={{ color:'#2563eb' }}>Назначено: {tooltip.activityCount}</strong>
+              {' • '}
+              <strong style={{ color:'#ea580c' }}>Сроков: {tooltip.dueCount}</strong>
+              {' • '}
+              <strong style={{ color:'#16a34a' }}>Выполнено: {tooltip.dueCompleted}</strong>
+              {' • '}
+              <strong style={{ color:'var(--text-primary)' }}>Активно: {tooltip.dueActive}</strong>
+            </div>
+          ) : (
+            <div className="heatmap-tooltip-hint">Наведите на ячейку для деталей</div>
+          )}
+        </div>
 
         <div style={{ display:'flex', alignItems:'center', gap:'0.75rem', marginTop:'1rem', flexWrap:'wrap' }}>
           <span style={{ fontSize:'0.8rem', color:'var(--text-secondary)', fontWeight:600 }}>Легенда:</span>

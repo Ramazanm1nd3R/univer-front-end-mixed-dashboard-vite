@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useTaskCard } from './taskCardContext.jsx';
 
 function TaskCardDetailsModal() {
@@ -12,7 +13,15 @@ function TaskCardDetailsModal() {
     handleEdit,
   } = useTaskCard();
 
-  return (
+  useEffect(() => {
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, []);
+
+  return createPortal(
     <div className="modal-overlay" onClick={closeDetails}>
       <div className="modal-content modal-modern" onClick={(event) => event.stopPropagation()}>
         <div className="modal-header-modern">
@@ -57,7 +66,8 @@ function TaskCardDetailsModal() {
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 

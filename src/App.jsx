@@ -11,7 +11,10 @@ import {
 
 import { AuthProvider, useAuth } from './context/AuthContext.jsx';
 import { DashboardProvider } from './context/DashboardContext.jsx';
+import { ScreenProtectionProvider } from './context/ScreenProtectionContext.jsx';
 import withAuth from './components/Auth/withAuth.jsx';
+import ScreenshotGuard from './components/ui/ScreenshotGuard.jsx';
+import ErrorBoundary from './components/ui/ErrorBoundary.jsx';
 
 import Header from 'Layout/Header.jsx';
 
@@ -78,10 +81,11 @@ function AppContent({ isDarkTheme, toggleTheme }) {
       )}
 
       <main className={`app-content ${is404Route ? 'app-content-404' : ''}`}>
-        <Suspense fallback={<RouteLoading />}>
-          {currentUser && !is404Route && <Notifications />}
+        <ErrorBoundary>
+          <Suspense fallback={<RouteLoading />}>
+            {currentUser && !is404Route && <Notifications />}
 
-          <Routes>
+            <Routes>
             <Route
               path="/login"
               element={currentUser ? <Navigate to="/" replace /> : <Login />}
@@ -103,7 +107,8 @@ function AppContent({ isDarkTheme, toggleTheme }) {
 
             <Route path="*" element={<NotFoundPage />} />
           </Routes>
-        </Suspense>
+          </Suspense>
+        </ErrorBoundary>
       </main>
     </>
   );
@@ -127,9 +132,13 @@ function App() {
     <BrowserRouter>
       <AuthProvider>
         <DashboardProvider>
-          <div className={`App ${isDarkTheme ? 'dark-theme' : 'light-theme'}`}>
-            <AppContent isDarkTheme={isDarkTheme} toggleTheme={toggleTheme} />
-          </div>
+          <ScreenProtectionProvider>
+            <div className={`App ${isDarkTheme ? 'dark-theme' : 'light-theme'}`}>
+              <ScreenshotGuard>
+                <AppContent isDarkTheme={isDarkTheme} toggleTheme={toggleTheme} />
+              </ScreenshotGuard>
+            </div>
+          </ScreenProtectionProvider>
         </DashboardProvider>
       </AuthProvider>
     </BrowserRouter>

@@ -1,4 +1,5 @@
-import React, { memo, useCallback, useMemo, useRef, useState } from 'react';
+import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import '../../styles/Dashboard.css';
 import { useForm } from '../../hooks/useForm';
 import {
@@ -35,6 +36,14 @@ function EditItemModal({ item, onClose, onUpdate }) {
   const [scheduleTouched, setScheduleTouched] = useState({});
   const dueDateRef = useRef(null);
   const dueTimeRef = useRef(null);
+
+  useEffect(() => {
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, []);
 
   const {
     values: formData,
@@ -129,7 +138,7 @@ function EditItemModal({ item, onClose, onUpdate }) {
   const titleNear = titleLen > MAX_TITLE * 0.8;
   const mergedErrors = { ...errors, ...scheduleErrors };
 
-  return (
+  return createPortal(
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content modal-modern" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header-modern modal-header-edit">
@@ -267,7 +276,8 @@ function EditItemModal({ item, onClose, onUpdate }) {
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 

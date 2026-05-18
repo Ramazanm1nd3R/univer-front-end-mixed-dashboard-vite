@@ -388,8 +388,8 @@ function LifeWheelTool({ userCategories = [] }) {
 
                 {(aiAnalysis.recommendations || []).length > 0 && (
                   <div className="recommendations-list">
-                    {aiAnalysis.recommendations.map((recommendation, index) => (
-                      <div key={`${recommendation}-${index}`} className="recommendation-item">
+                    {aiAnalysis.recommendations.map((recommendation) => (
+                      <div key={recommendation} className="recommendation-item">
                         <span className="rec-icon">💡</span>
                         <span>{recommendation}</span>
                       </div>

@@ -1,5 +1,6 @@
 import React from 'react';
 import { useAuth } from '../../context/AuthContext';
+import ScreenshotButton from '../ui/ScreenshotButton.jsx';
 import './Header.css';
 
 function Header({ onViewChange, currentView, isDarkTheme, toggleTheme }) {
@@ -57,6 +58,7 @@ function Header({ onViewChange, currentView, isDarkTheme, toggleTheme }) {
 
         {/* Информация о пользователе */}
         <div className="user-section">
+          <ScreenshotButton />
           <button
             onClick={toggleTheme}
             className="theme-toggle"

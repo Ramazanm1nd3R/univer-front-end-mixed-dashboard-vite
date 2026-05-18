@@ -35,6 +35,13 @@ export function validateScheduleFields(schedule, touched = {}) {
     nextErrors.dueDate = 'Укажите дату, если задано время';
   }
 
+  if ((touched.dueDate || touched.dueTime) && schedule.dueDate && schedule.dueTime) {
+    const dueDateTime = new Date(`${schedule.dueDate}T${schedule.dueTime}`);
+    if (!Number.isNaN(dueDateTime.getTime()) && dueDateTime.getTime() < Date.now()) {
+      nextErrors.dueTime = 'Время уже прошло';
+    }
+  }
+
   return nextErrors;
 }
 

@@ -5,6 +5,7 @@ import React, {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from 'react';
 import { useAuth } from './AuthContext.jsx';
@@ -59,23 +60,49 @@ export function DashboardProvider({ children }) {
   const [editingItem, setEditingItem] = useState(null);
 
   const [notifications, setNotifications] = useState([]);
+  const notificationTimeouts = useRef(new Map());
 
   const removeNotification = useCallback((id) => {
+    const timeoutId = notificationTimeouts.current.get(id);
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+      notificationTimeouts.current.delete(id);
+    }
     setNotifications((prev) => prev.filter((n) => n.id !== id));
   }, []);
 
   const pushNotification = useCallback((message, type = 'info') => {
     const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
     setNotifications((prev) => [...prev, { id, message, type }]);
-    setTimeout(() => {
+    const timeoutId = setTimeout(() => {
+      notificationTimeouts.current.delete(id);
       setNotifications((prev) => prev.filter((n) => n.id !== id));
     }, 4000);
+    notificationTimeouts.current.set(id, timeoutId);
     return id;
+  }, []);
+
+  useEffect(() => {
+    const timeouts = notificationTimeouts.current;
+    return () => {
+      timeouts.forEach((timeoutId) => clearTimeout(timeoutId));
+      timeouts.clear();
+    };
   }, []);
 
   const notifySuccess = useCallback((message) => pushNotification(message, 'success'), [pushNotification]);
   const notifyError = useCallback((message) => pushNotification(message, 'error'), [pushNotification]);
   const notifyInfo = useCallback((message) => pushNotification(message, 'info'), [pushNotification]);
+
+  const isMountedRef = useRef(true);
+  const loadRequestIdRef = useRef(0);
+
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
   const loadDashboardItems = useCallback(async () => {
     if (!currentUser?.id) {
@@ -85,10 +112,13 @@ export function DashboardProvider({ children }) {
       return;
     }
 
+    const requestId = ++loadRequestIdRef.current;
+
     try {
       setLoading(true);
       setError(null);
       const result = await api.getDashboardItems(currentUser.id);
+      if (!isMountedRef.current || requestId !== loadRequestIdRef.current) return;
       if (result.success) {
         setItems(result.items.map(mapApiItem));
       } else {
@@ -96,10 +126,13 @@ export function DashboardProvider({ children }) {
         setItems([]);
       }
     } catch {
+      if (!isMountedRef.current || requestId !== loadRequestIdRef.current) return;
       setError('Не удалось загрузить задачи');
       setItems([]);
     } finally {
-      setLoading(false);
+      if (isMountedRef.current && requestId === loadRequestIdRef.current) {
+        setLoading(false);
+      }
     }
   }, [currentUser?.id]);
 
