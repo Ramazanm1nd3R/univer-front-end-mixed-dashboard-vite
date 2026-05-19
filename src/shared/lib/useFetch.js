@@ -1,5 +1,14 @@
 import { useCallback, useState } from 'react';
 
+// Универсальный async fetcher.
+// execute() возвращает результат, а не только пишет в state — это позволяет
+// вызывающему коду сразу принять решение (например, закрыть модалку при success),
+// не дожидаясь следующего рендера.
+//
+// Поддерживаем два формата ответа от fetchFn:
+//   { success: false, error } — наш бэкенд так возвращает ошибки бизнес-уровня
+//   throw                    — сетевые/неожиданные ошибки
+// В обоих случаях обнуляем data до initialData, чтобы UI не показал устаревшее.
 export function useFetch(fetchFn, { initialData = null } = {}) {
   const [data, setData] = useState(initialData);
   const [loading, setLoading] = useState(false);
@@ -36,7 +45,7 @@ export function useFetch(fetchFn, { initialData = null } = {}) {
     loading,
     error,
     execute,
-    setData,
+    setData, // отдаём наружу — нужен, если кто-то хочет обновить data оптимистично
   };
 }
 

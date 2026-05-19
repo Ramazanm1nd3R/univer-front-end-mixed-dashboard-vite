@@ -11,6 +11,12 @@ import {
   validateScheduleFields,
 } from '@entities/task/model/taskFormConfig';
 
+// Гибридная форма создания задачи:
+//   - title/category/priority/status — controlled через useForm
+//   - dueDate/dueTime                — uncontrolled через ref'ы
+// Так сделано намеренно: native-инпуты date/time на ранних рендерах могут
+// "мигать", если их значением управлять через state на каждый keystroke.
+// Ref'ы дают нативное поведение, а валидацию запускаем по blur/change вручную.
 function AddItemModal({ onClose, onAdd }) {
   const initialValues = useMemo(() => ({
     title: '',
@@ -25,6 +31,7 @@ function AddItemModal({ onClose, onAdd }) {
   const [scheduleTouched, setScheduleTouched] = useState({});
   const dueDateRef = useRef(null);
   const dueTimeRef = useRef(null);
+  // Защита от setState после unmount — если await'ы продолжатся после закрытия модалки.
   const isMountedRef = useRef(true);
 
   useEffect(() => {

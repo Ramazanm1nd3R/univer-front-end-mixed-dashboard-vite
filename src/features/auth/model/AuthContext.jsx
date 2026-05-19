@@ -2,6 +2,10 @@ import React, { createContext, useState, useContext, useEffect } from 'react';
 import api from '@shared/api/api';
 import { safeParseJSON } from '@shared/lib/safeParseJSON';
 
+// AuthContext отвечает за пользовательскую сессию и двухшаговый flow
+// логина/регистрации: ввод данных → код на email → завершение.
+// Все временные артефакты (код, попытки, pending-данные) живут в localStorage,
+// чтобы пережить обновление страницы пока пользователь ищет письмо в почте.
 const AuthContext = createContext();
 
 export const useAuth = () => {
@@ -17,6 +21,9 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [pendingVerification, setPendingVerification] = useState(null);
 
+  // Восстановление сессии при маунте. safeParseJSON защищает от падений,
+  // если в localStorage оказался невалидный JSON (например, из-за прерванной записи).
+  // Если сессия протухла или повреждена — чистим её.
   useEffect(() => {
     const session = safeParseJSON(localStorage.getItem('currentSession'));
     if (session?.expiresAt && session?.user) {
@@ -36,12 +43,14 @@ export const AuthProvider = ({ children }) => {
     return Math.floor(100000 + Math.random() * 900000).toString();
   };
 
-  // Отправка кода через Flask backend
+  // Отправка кода через Flask backend.
+  // Код генерируем на фронте и параллельно сохраняем в localStorage —
+  // так пользователь может ввести его даже если SMTP на бэке упал.
+  // Истечение через 60 секунд; счётчик attempts блокирует брутфорс (3 попытки).
   const sendVerificationCode = async (email, type = 'login') => {
     const code = generateCode();
     const expiresAt = new Date(Date.now() + 60000).toISOString();
 
-    // Сохраняем код локально
     const verificationData = {
       email,
       code,
@@ -61,6 +70,8 @@ export const AuthProvider = ({ children }) => {
 
       if (result.success) {
         console.log('✅ Email успешно отправлен на:', email);
+        // Показываем код в alert'е — это DEV-режим демонстрации,
+        // в проде здесь должен остаться только success-сообщение.
         alert(`✅ Код отправлен на ${email}\n\n🔐 Код (для теста): ${code}\n⏱️ Действителен 60 секунд`);
       } else {
         throw new Error(result.error || 'Ошибка отправки');
@@ -69,6 +80,8 @@ export const AuthProvider = ({ children }) => {
       return { success: true };
 
     } catch (error) {
+      // Fallback: если бэк недоступен — всё равно показываем код,
+      // чтобы можно было продолжить демонстрацию.
       console.error('❌ Ошибка отправки:', error);
       alert(`⚠️ Ошибка отправки email\n\n🔐 Ваш код: ${code}\n⏱️ Действителен 60 секунд\n\nВведите его на странице`);
       return { success: false };
@@ -192,7 +205,8 @@ export const AuthProvider = ({ children }) => {
     createSession(result.user);
   };
 
-  // Создание сессии
+  // Сессия живёт 24 часа. В сессии сохраняем только публичные поля пользователя —
+  // никаких паролей или токенов в localStorage.
   const createSession = (user) => {
     const session = {
       user: {

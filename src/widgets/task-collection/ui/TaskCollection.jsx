@@ -1,6 +1,14 @@
 import React, { memo, useCallback, useMemo, useState } from 'react';
 import { useFilter } from '@shared/lib/useFilter';
 
+// Render-prop виджет коллекции задач.
+// Принимает items и children-функцию, отдаёт всё необходимое для
+// отрисовки фильтр-панели + отфильтрованной сетки.
+//
+// Зачем render-prop вместо обычной композиции:
+//   - Dashboard сам решает, как располагать UI (hero, stats, фильтры, кнопки),
+//   - но логика фильтрации/сортировки/счётчиков общая и сюда вынесена.
+
 const DEFAULT_FILTERS = {
   category: 'all',
   status: 'all',
@@ -28,6 +36,9 @@ function TaskCollection({
     setSortBy(initialSortBy);
   }, [initialFilters, initialSortBy]);
 
+  // Хелпер для UI — нужно ли показывать кнопку "Сбросить фильтры".
+  // Сравниваем с initialFilters, а не с DEFAULT_FILTERS, на случай если
+  // родитель задал свои дефолты.
   const hasActiveFilters = Boolean(
     filters.category !== initialFilters.category
       || filters.status !== initialFilters.status

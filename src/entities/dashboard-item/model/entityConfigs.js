@@ -1,3 +1,16 @@
+// Конфиги для трёх сущностей дашборда: задачи, рецепты, фильмы.
+// Идея — единый формат entityConfig, чтобы EntityBoard и EntityFormModal
+// могли работать с любой сущностью без знания о её специфике.
+// Каждый config описывает:
+//   label/singular/description/empty* — UI-тексты
+//   sortOptions, filterFields           — что показывать в шапке доски
+//   initialValues, fields               — схема формы создания/редактирования
+//   validate(values, touched)           — правила, в том числе cross-field
+//   buildPayload/normalizeItem          — преобразования "форма ↔ модель"
+//
+// Когда добавляется новая сущность (например, Books) — нужно только
+// дописать config сюда, никакой код в widgets/EntityBoard трогать не нужно.
+
 const taskCategories = [
   { value: 'design', label: 'Design' },
   { value: 'planning', label: 'Planning' },
@@ -179,6 +192,9 @@ export const ENTITY_CONFIGS = {
         errors.servings = 'Servings must be at least 1';
       }
 
+      // Cross-field правило: суммарное время приготовления должно быть > 0.
+      // Сначала пользователь мог написать prepTime=10, потом стереть cookTime —
+      // по отдельности оба поля валидны, но сумма получилась бы 0. Ловим именно это.
       if ((touched.prepTime || touched.cookTime) && Number(values.prepTime) + Number(values.cookTime) <= 0) {
         errors.cookTime = 'Total prep + cook time should be at least 1 minute';
       }
@@ -277,6 +293,9 @@ export const ENTITY_CONFIGS = {
         }
       }
 
+      // Cross-field: если фильм помечен как "просмотрен" — рейтинг обязателен.
+      // Логично: ты же его уже посмотрел, значит можешь поставить оценку.
+      // Запускаем правило когда трогали хотя бы одно из связанных полей.
       if ((touched.status || touched.rating) && values.status === 'watched' && Number(values.rating) <= 0) {
         errors.rating = 'Add a rating for a watched movie';
       }

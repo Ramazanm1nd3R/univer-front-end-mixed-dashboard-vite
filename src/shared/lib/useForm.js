@@ -1,5 +1,15 @@
 import { useCallback, useMemo, useState } from 'react';
 
+// Хук управления формой. Идея — отделить состояние и валидацию
+// от конкретных <input/>, чтобы UI оставался "тупым".
+//
+// Контракт validate(values, touched) -> { fieldName: errorMessage, ... }
+// touched позволяет валидатору показывать ошибки только тех полей,
+// которые пользователь уже трогал — иначе при первом открытии формы
+// сразу высветятся все required-ошибки.
+
+// При submit'е помечаем touched = true для ВСЕХ полей,
+// чтобы валидатор показал ошибки и тех полей, которых пользователь не касался.
 function getTouchedMap(initialValues) {
   return Object.keys(initialValues).reduce((acc, key) => {
     acc[key] = true;
@@ -30,6 +40,9 @@ export function useForm({ initialValues, validate = () => ({}) }) {
     });
   }, [runValidation, touched]);
 
+  // handleChange принимает либо стандартный SyntheticEvent (из <input onChange>),
+  // либо пару (name, value) — это удобно для кастомных контролов вроде date/time-пикеров,
+  // которые отдают значение не через event.target.
   const handleChange = useCallback((eventOrName, valueOverride) => {
     if (typeof eventOrName === 'string') {
       setValue(eventOrName, valueOverride);
@@ -51,6 +64,9 @@ export function useForm({ initialValues, validate = () => ({}) }) {
     });
   }, [runValidation, values]);
 
+  // handleSubmit возвращает обёртку — её удобно повесить прямо на <form onSubmit>.
+  // Перед вызовом пользовательского submitFn гоним финальную валидацию по ВСЕМ полям,
+  // и если есть ошибки — submitFn не вызывается, форма остаётся открытой.
   const handleSubmit = useCallback((submitFn) => {
     return async (event) => {
       event.preventDefault();

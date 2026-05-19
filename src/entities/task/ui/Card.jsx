@@ -8,6 +8,12 @@ import React, {
 } from 'react';
 import { TaskCardContext } from './card-parts/taskCardContext.jsx';
 
+// Compound TaskCard для дашборда задач. В отличие от shared/ui/Card —
+// специфичен под Task: знает про dueDate, overdue, лайки, режим details.
+//
+// Слоты (Header/Body/Footer/DetailsModal) вынесены в отдельные чанки
+// и подгружаются лениво — на странице может быть 50+ карточек,
+// а DetailsModal вообще нужен только при клике на конкретную карточку.
 const TaskCardHeader = lazy(() => import('./card-parts/TaskCardHeader.jsx'));
 const TaskCardBody = lazy(() => import('./card-parts/TaskCardBody.jsx'));
 const TaskCardFooter = lazy(() => import('./card-parts/TaskCardFooter.jsx'));
@@ -26,6 +32,8 @@ function formatDueDate(dueDate) {
 function CompoundTaskCard({ item, onDelete, onToggleStatus, onToggleLike, onEdit, children }) {
   const isCompleted = item.status === 'completed';
   const dueDate = item.dueDate ? new Date(item.dueDate) : null;
+  // Просроченная — есть дедлайн, в прошлом, и задача не завершена.
+  // Завершённые задачи не считаем overdue, даже если дедлайн давно прошёл.
   const isOverdue = dueDate && !isCompleted && dueDate < new Date();
   const formattedDue = formatDueDate(item.dueDate);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
@@ -108,8 +116,11 @@ CompoundTaskCard.Footer = function TaskCardFooterSlot() {
   return <TaskCardFooter />;
 };
 
+// memo() для оптимизации сетки карточек — без него каждое обновление
+// фильтра в DashboardUI перерисовывало бы все карточки, не только изменившиеся.
 const MemoizedCompoundTaskCard = memo(CompoundTaskCard);
 
+// Слоты надо приклеить обратно к memo-обёртке, иначе <Card.Header /> сломается.
 MemoizedCompoundTaskCard.Header = CompoundTaskCard.Header;
 MemoizedCompoundTaskCard.Body = CompoundTaskCard.Body;
 MemoizedCompoundTaskCard.Footer = CompoundTaskCard.Footer;

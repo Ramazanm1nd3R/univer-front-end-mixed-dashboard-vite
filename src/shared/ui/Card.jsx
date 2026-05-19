@@ -1,8 +1,21 @@
 import React, { createContext, memo, useCallback, useContext, useMemo } from 'react';
 import styles from '@shared/styles/mixedDashboard.module.css';
 
+// Generic compound-card для entity-страниц (tasks/recipes/movies).
+// Доменный TaskCard для дашборда задач — в @entities/task/ui/Card.
+//
+// Pattern: вместо передачи кучи props в Card.Header/Body/Footer (prop-drilling)
+// храним item и handlers в локальном контексте, слоты сами вытаскивают что им нужно.
+// Снаружи это выглядит так:
+//   <Card item={x} onEdit={...} onDelete={...}>
+//     <Card.Header />
+//     <Card.Body>...что-то кастомное...</Card.Body>
+//     <Card.Footer />
+//   </Card>
 const CardContext = createContext(null);
 
+// Маленький guard: если кто-то использует <Card.Header /> сам по себе,
+// сразу понятно из ошибки в чём дело.
 function useCardContext() {
   const value = useContext(CardContext);
   if (!value) {
@@ -128,6 +141,8 @@ function Footer({ children }) {
   );
 }
 
+// memo() — карточки в сетке могут перерисовываться часто,
+// а большинство пропсов стабильны (item.id), так что выигрыш заметный.
 const MemoizedCard = memo(Card);
 MemoizedCard.Header = Header;
 MemoizedCard.Body = Body;

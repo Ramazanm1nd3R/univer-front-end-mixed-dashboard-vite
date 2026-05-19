@@ -12,6 +12,11 @@ import { useAuth } from '@features/auth/model/AuthContext';
 import api from '@shared/api/api';
 import { useModal } from '@shared/lib/useModal';
 
+// Главный стор задач. Намеренно разнесён на три контекста, а не один большой —
+// иначе любое изменение фильтра тянуло бы перерисовку всей сетки карточек.
+//   Data           — items + CRUD-методы (подписаны карточки и статистика)
+//   UI             — фильтры, сорт, состояние модалок (подписаны фильтр-панель, кнопки)
+//   Notifications  — toast'ы (подписан только Notifications viewport)
 const DashboardDataContext = createContext(null);
 const DashboardUIContext = createContext(null);
 const DashboardNotificationsContext = createContext(null);
@@ -24,6 +29,8 @@ function useRequiredContext(context, hookName) {
   return value;
 }
 
+// Бэкенд хранит дату и время раздельно (dueDate, dueTime), но UI работает
+// с одной datetime-строкой. Склеиваем их через 'T' для ISO-совместимости.
 function mapApiItem(item) {
   const normalizedDueDate = item.dueDate
     ? item.dueTime
@@ -42,7 +49,7 @@ function mapApiItem(item) {
     updatedAt: item.updatedAt ? new Date(item.updatedAt) : new Date(),
     dueDate: normalizedDueDate,
     dueTime: item.dueTime || '',
-    likes: 0,
+    likes: 0, // лайки храним только локально, на бэке для них пока нет колонки
   };
 }
 
@@ -59,6 +66,11 @@ export function DashboardProvider({ children }) {
   const editModal = useModal(false);
   const [editingItem, setEditingItem] = useState(null);
 
+  // Тост-уведомления.
+  // Таймеры храним в useRef, а не state, потому что:
+  //   1) их изменение не должно вызывать перерисовку;
+  //   2) при unmount компонента нужно гарантированно их зачистить,
+  //      иначе setNotifications в setTimeout стрельнет в размонтированный дерево.
   const [notifications, setNotifications] = useState([]);
   const notificationTimeouts = useRef(new Map());
 
@@ -82,6 +94,7 @@ export function DashboardProvider({ children }) {
     return id;
   }, []);
 
+  // Cleanup всех висящих таймеров при размонтировании провайдера.
   useEffect(() => {
     const timeouts = notificationTimeouts.current;
     return () => {
@@ -94,6 +107,11 @@ export function DashboardProvider({ children }) {
   const notifyError = useCallback((message) => pushNotification(message, 'error'), [pushNotification]);
   const notifyInfo = useCallback((message) => pushNotification(message, 'info'), [pushNotification]);
 
+  // Защита от race conditions при загрузке:
+  //   isMountedRef    — не пишем в state, если компонент уже размонтирован
+  //   loadRequestIdRef — игнорируем ответ, если за время запроса успел стартовать новый
+  // Это важно, когда пользователь быстро logout → login: старый ответ с задачами
+  // прошлого пользователя не должен перетереть актуальные данные.
   const isMountedRef = useRef(true);
   const loadRequestIdRef = useRef(0);
 
@@ -105,6 +123,7 @@ export function DashboardProvider({ children }) {
   }, []);
 
   const loadDashboardItems = useCallback(async () => {
+    // Без пользователя нечего грузить — просто чистим стейт.
     if (!currentUser?.id) {
       setItems([]);
       setError(null);
@@ -112,6 +131,7 @@ export function DashboardProvider({ children }) {
       return;
     }
 
+    // Берём номер своего запроса. Если придёт более новый — этот результат игнорируется.
     const requestId = ++loadRequestIdRef.current;
 
     try {
@@ -244,6 +264,8 @@ export function DashboardProvider({ children }) {
     }
   }, [currentUser?.id, items, loadDashboardItems, notifyError]);
 
+  // Лайки только на фронте — на бэке такой колонки нет.
+  // Поэтому никакого API-вызова, просто обновляем локальный state.
   const toggleLike = useCallback((id) => {
     setItems((prev) => prev.map((item) => (
       item.id === id ? { ...item, likes: (item.likes || 0) + 1 } : item
@@ -336,6 +358,10 @@ export function useDashboardNotifications() {
   return useRequiredContext(DashboardNotificationsContext, 'useDashboardNotifications');
 }
 
+// "Жирный" хук — даёт сразу всё. Удобен для компонентов вроде Dashboard,
+// которые правда трогают и data, и UI, и уведомления одновременно.
+// В остальных местах лучше брать узкий useDashboardData/UI/Notifications —
+// меньше подписок = меньше лишних перерисовок.
 export function useDashboard() {
   const data = useDashboardData();
   const ui = useDashboardUI();

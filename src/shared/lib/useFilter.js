@@ -1,11 +1,16 @@
 import { useMemo } from 'react';
 
+// Числовые веса для сортировки по приоритету (high → low).
+// Хранить отдельно, а не через .indexOf() — быстрее и читается лучше.
 const PRIORITY_WEIGHT = { high: 3, medium: 2, low: 1 };
 
+// Универсальная фильтрация + сортировка. Результат мемоизирован —
+// пересчёт только когда меняются items/filters/sortBy, а не при каждом ререндере.
 export function useFilter(items, filters, sortBy = 'date') {
   return useMemo(() => {
     let result = [...items];
 
+    // Категория и статус: 'all' = не применять фильтр.
     if (filters.category && filters.category !== 'all') {
       result = result.filter((item) => item.category === filters.category);
     }
@@ -14,11 +19,13 @@ export function useFilter(items, filters, sortBy = 'date') {
       result = result.filter((item) => item.status === filters.status);
     }
 
+    // Поиск регистронезависимый — приводим оба значения к lowercase.
     if (filters.search) {
       const query = filters.search.toLowerCase();
       result = result.filter((item) => item.title.toLowerCase().includes(query));
     }
 
+    // Теги: AND-логика, элемент должен содержать ВСЕ выбранные теги.
     if (Array.isArray(filters.tags) && filters.tags.length > 0) {
       result = result.filter((item) => {
         const itemTags = Array.isArray(item.tags) ? item.tags : [];
@@ -27,7 +34,7 @@ export function useFilter(items, filters, sortBy = 'date') {
     }
 
     result.sort((a, b) => {
-      if (sortBy === 'date') return new Date(b.date) - new Date(a.date);
+      if (sortBy === 'date') return new Date(b.date) - new Date(a.date); // новые сверху
       if (sortBy === 'title') return a.title.localeCompare(b.title);
       if (sortBy === 'priority') {
         return (PRIORITY_WEIGHT[b.priority] || 0) - (PRIORITY_WEIGHT[a.priority] || 0);

@@ -6,6 +6,12 @@ import TaskCollection from '@widgets/task-collection/ui/TaskCollection';
 import '@shared/styles/Dashboard.css';
 import ServerError from '@shared/ui/ServerError';
 
+// Главная страница (роут "/"). Композирует виджеты и фичи в один пользовательский экран:
+//   useDashboardData — items + CRUD
+//   useDashboardUI   — модалки (Add/Edit подписаны только сюда, не на data)
+//   TaskCollection   — render-prop фильтрация (widget)
+//   Card             — task entity card
+//   AddItemModal / EditItemModal — фичи task-form (лениво, нужны только когда модалка открыта)
 const AddItemModal = lazy(() => import('@features/task-form/ui/AddItemModal'));
 const EditItemModal = lazy(() => import('@features/task-form/ui/EditItemModal'));
 
@@ -33,6 +39,9 @@ function Dashboard() {
     closeEditModal,
   } = useDashboardUI();
 
+  // Все производные значения статистики считаются здесь в useMemo —
+  // пересчёт только при изменении items, а не при каждом ре-рендере дашборда
+  // (например, при печатании в фильтре).
   const stats = useMemo(() => {
     const totalTasks = items.length;
     const activeCount = items.filter((item) => item.status === 'active').length;
@@ -40,7 +49,9 @@ function Dashboard() {
     const highCount = items.filter((item) => item.priority === 'high' && item.status === 'active').length;
     const completionPct = totalTasks > 0 ? Math.round((completedCount / totalTasks) * 100) : 0;
 
-    // Consecutive days with at least one completed task.
+    // Streak = последовательные дни, в которые завершалась хотя бы одна задача.
+    // Идём от сегодня назад, пока день есть в множестве — растим счётчик.
+    // Set даёт O(1) проверку has(), важно если задач много.
     const completedDaySet = new Set(
       items
         .filter((item) => item.status === 'completed')

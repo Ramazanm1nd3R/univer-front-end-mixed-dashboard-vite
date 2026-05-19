@@ -2,6 +2,10 @@
 import React from 'react';
 import { useAuth } from '@features/auth/model/AuthContext';
 
+// HOC-обёртка для защищённых страниц. Отличается от ProtectedRouteWrapper
+// (App.jsx) тем, что не редиректит на /login, а показывает дружелюбный fallback —
+// так удобнее, если пользователь пришёл по ссылке и должен видеть, ЧТО ему недоступно.
+
 function AccessDenied({ message }) {
   return (
     <div className="dashboard-container">
@@ -23,6 +27,7 @@ export function withAuth(
   function WithAuthComponent(props) {
     const { currentUser, loading } = useAuth();
 
+    // Пока сессия восстанавливается — не моргаем фоллбэком зря.
     if (loading) {
       return (
         <div className="dashboard-container">
@@ -41,6 +46,8 @@ export function withAuth(
     return <WrappedComponent {...props} />;
   }
 
+  // displayName в формате withAuth(Foo) — помогает в React DevTools
+  // и stack-trace'ах ошибок отличать обёрнутые компоненты от обычных.
   const wrappedName = WrappedComponent.displayName || WrappedComponent.name || 'Component';
   WithAuthComponent.displayName = `withAuth(${wrappedName})`;
 
