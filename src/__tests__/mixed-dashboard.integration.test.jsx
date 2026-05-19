@@ -1,12 +1,12 @@
 /* eslint-env vitest */
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
-import { NotificationProvider } from '../context/NotificationContext';
-import { ItemsProvider } from '../context/ItemsContext';
-import { FilterProvider } from '../context/FilterContext';
-import TasksPage from '../pages/TasksPage';
-import mockApi from '../api/mockApi';
+import { NotificationProvider } from '@entities/notification/model/NotificationContext';
+import { ItemsProvider } from '@entities/dashboard-item/model/ItemsContext';
+import { FilterProvider } from '@features/task-filter/model/FilterContext';
+import TasksPage from '@pages/tasks/ui/TasksPage';
+import mockApi from '@shared/api/mockApi';
 
-vi.mock('../api/mockApi', () => {
+vi.mock('@shared/api/mockApi', () => {
   const initialStore = {
     tasks: [
       {
